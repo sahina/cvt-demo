@@ -1,0 +1,20 @@
+[project]
+name = "consumer-2"
+version = "1.0.0"
+description = "Consumer 2 CLI - Uses add, multiply, and divide operations from calculator API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+cvt = [
+    "cvt-sdk",
+]
+
+[project.scripts]
+consumer-2 = "main:main"
+
+[tool.uv.sources]
+cvt-sdk = { path = "../../cvt/sdks/python", editable = true }

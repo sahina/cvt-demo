@@ -1,0 +1,84 @@
+# Binaries
+bin/
+build/
+
+# Generated protobuf code (Go)
+gen/
+# Keep JS SDK generated files (needed for SDK distribution)
+!sdk/js/core/src/gen/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.o
+*.a
+*.test
+
+# Go coverage
+*.out
+coverage.html
+
+# Go vendor (if not using)
+# vendor/
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Node.js (web/)
+node_modules/
+dist/
+.cache/
+
+# Vite
+*.local
+.vite/
+
+# TypeScript
+tsbuildinfo
+
+# Testing
+coverage/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build output embedded in server (generated, except .gitkeep)
+internal/server/static/*
+!internal/server/static/.gitkeep
+
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.uv/
+consumer-2/uv.lock

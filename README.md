@@ -1,3 +1,335 @@
-# CVT Demo Repository
+# CVT Demo Application
 
-Repository for demonstrating the capabilities of the CVT (Computer Vision Toolkit). This repository contains sample code, datasets, and documentation to help users get started with CVT.
+This demo application showcases the **Contract Validator Toolkit (CVT)** for API contract testing. It demonstrates how CVT enables runtime contract validation between API producers and consumers.
+
+## Architecture
+
+```
+                    ┌─────────────────┐
+                    │   CVT Server    │
+                    │   (port 9550)   │
+                    └────────┬────────┘
+                             │ gRPC
+         ┌───────────────────┼───────────────────┐
+         │                   │                   │
+         ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│   Consumer-1    │ │    Producer     │ │   Consumer-2    │
+│   (Node.js)     │ │   (Go + CVT)    │ │   (Python/uv)   │
+│   CLI Tool      │ │  port 10001     │ │   CLI Tool      │
+│  add, subtract  │ │  4 endpoints    │ │ add,mult,divide │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+         │                   ▲                   │
+         └───────────────────┴───────────────────┘
+                      HTTP calls
+```
+
+## Components
+
+### Producer (Go)
+
+A Go HTTP server implementing the Calculator API with 4 endpoints:
+
+- `GET /add?a=<num>&b=<num>` - Add two numbers
+- `GET /subtract?a=<num>&b=<num>` - Subtract two numbers
+- `GET /multiply?a=<num>&b=<num>` - Multiply two numbers
+- `GET /divide?a=<num>&b=<num>` - Divide two numbers
+
+The producer uses CVT middleware for runtime contract validation against `calculator-api.yaml`.
+
+### Consumer-1 (Node.js)
+
+A CLI tool that calls the Calculator API for **add** and **subtract** operations:
+
+```bash
+node main.js add 5 3
+node main.js subtract 10 4
+```
+
+### Consumer-2 (Python)
+
+A CLI tool that calls the Calculator API for **add**, **multiply**, and **divide** operations:
+
+```bash
+python main.py add 5 3
+python main.py multiply 4 7
+python main.py divide 10 2
+```
+
+## Prerequisites
+
+- Docker and Docker Compose
+- Make (optional, for convenience commands)
+- curl and jq (for direct API testing)
+
+## Quick Start
+
+### 1. Start the Infrastructure
+
+```bash
+# Build and start CVT server + producer
+make up
+
+# Or without make:
+docker compose up -d
+```
+
+### 2. Test the Producer Directly
+
+```bash
+# Test all endpoints
+make test-producer
+
+# Or manually:
+curl "http://localhost:10001/add?a=5&b=3"
+# Expected: {"result":8}
+```
+
+### 3. Run Consumer-1 (Node.js)
+
+```bash
+# Without CVT validation (default)
+make consumer-1-add
+make consumer-1-subtract
+
+# With CVT validation
+make consumer-1-add-validate
+make consumer-1-subtract-validate
+```
+
+### 4. Run Consumer-2 (Python)
+
+```bash
+# Without CVT validation (default)
+make consumer-2-add
+make consumer-2-multiply
+make consumer-2-divide
+
+# With CVT validation
+make consumer-2-add-validate
+make consumer-2-multiply-validate
+make consumer-2-divide-validate
+```
+
+### 5. Run All Tests
+
+```bash
+# Run all consumer operations
+make test-all
+
+# Run all with CVT validation
+make test-contracts
+```
+
+### 6. Stop Everything
+
+```bash
+make down
+```
+
+## CVT Validation
+
+Both consumers support optional CVT validation via the `--validate` flag:
+
+### How It Works
+
+1. **Producer-side validation**: The producer always validates requests/responses against the OpenAPI schema using CVT middleware.
+
+2. **Consumer-side validation** (optional): When `--validate` is enabled, consumers also validate responses through the CVT server.
+
+### Enabling Validation
+
+```bash
+# Node.js consumer
+node main.js add 5 3 --validate
+
+# Python consumer
+python main.py add 5 3 --validate
+```
+
+When validation fails, the consumer exits with error code 1 and prints the validation errors.
+
+## Breaking Change Demo
+
+This section demonstrates how CVT can detect breaking changes before they affect consumers.
+
+### Scenario: Removing an Endpoint
+
+1. **Initial state**: All consumers work with v1.0.0 of the API.
+
+2. **Proposed change**: Remove the `/subtract` endpoint in v2.0.0.
+
+3. **Impact analysis**: CVT can detect that Consumer-1 (which uses `/subtract`) would break.
+
+### Steps to Reproduce
+
+```bash
+# 1. Start the infrastructure
+make up
+
+# 2. Run consumer-1 (uses add and subtract)
+make consumer-1-add-validate
+make consumer-1-subtract-validate
+
+# 3. Now imagine we want to remove /subtract endpoint
+# CVT would detect this as a breaking change for Consumer-1
+
+# 4. Run consumer-2 (uses add, multiply, divide - NOT subtract)
+make consumer-2-add-validate
+make consumer-2-multiply-validate
+# Consumer-2 would be unaffected by removing /subtract
+```
+
+## API Reference
+
+### Calculator API Endpoints
+
+| Endpoint | Method | Parameters | Response |
+|----------|--------|------------|----------|
+| `/add` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
+| `/subtract` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
+| `/multiply` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
+| `/divide` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
+| `/health` | GET | - | `{"status": "healthy"}` |
+
+### Error Responses
+
+All endpoints return 400 Bad Request for:
+- Missing `a` or `b` parameters
+- Non-numeric parameter values
+- Division by zero (for `/divide`)
+
+```json
+{"error": "error message"}
+```
+
+## Port Assignments
+
+| Service | Port |
+|---------|------|
+| CVT Server (gRPC) | 9550 |
+| CVT Server (Metrics) | 9551 |
+| Producer | 10001 |
+
+## Make Targets
+
+```bash
+make help  # Show all available targets
+```
+
+### Docker Operations
+
+- `make build` - Build all Docker images
+- `make up` - Start CVT server and producer
+- `make down` - Stop all services
+- `make logs` - View logs from all services
+- `make clean` - Remove containers and images
+
+### Consumer Operations
+
+- `make consumer-1-add` - Run add operation (Node.js)
+- `make consumer-1-subtract` - Run subtract operation (Node.js)
+- `make consumer-2-add` - Run add operation (Python)
+- `make consumer-2-multiply` - Run multiply operation (Python)
+- `make consumer-2-divide` - Run divide operation (Python)
+
+Add `-validate` suffix for CVT validation (e.g., `make consumer-1-add-validate`).
+
+### Testing
+
+- `make test-all` - Run all consumer operations
+- `make test-contracts` - Run all with CVT validation
+
+### Utilities
+
+- `make shell-producer` - Shell into producer container
+- `make shell-cvt` - Shell into CVT server container
+
+## Project Structure
+
+```
+cvt-demo/
+├── docker-compose.yml     # Service orchestration
+├── Makefile               # Convenience commands
+├── README.md              # This file
+├── producer/
+│   ├── main.go            # Go HTTP server
+│   ├── go.mod             # Go module
+│   ├── calculator-api.yaml # OpenAPI spec
+│   └── Dockerfile
+├── consumer-1/
+│   ├── main.js            # Node.js CLI
+│   ├── package.json
+│   └── Dockerfile
+└── consumer-2/
+    ├── main.py            # Python CLI
+    ├── pyproject.toml
+    └── Dockerfile
+```
+
+## Development
+
+### Local Development (without Docker)
+
+**Producer:**
+```bash
+cd producer
+go mod tidy
+go run main.go
+```
+
+**Consumer-1:**
+```bash
+cd consumer-1
+npm install
+node main.js add 5 3
+```
+
+**Consumer-2:**
+```bash
+cd consumer-2
+uv sync
+uv run python main.py add 5 3
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PRODUCER_URL` | `http://localhost:10001` | Producer API URL |
+| `CVT_SERVER_ADDR` | `localhost:9550` | CVT gRPC server address |
+| `SCHEMA_PATH` | `./calculator-api.yaml` | Path to OpenAPI schema |
+| `CVT_ENABLED` | `true` | Enable/disable CVT on producer |
+
+## Troubleshooting
+
+### CVT Server Not Reachable
+
+```bash
+# Check if CVT server is running
+docker compose logs cvt-server
+
+# Check health
+curl http://localhost:9551/health
+```
+
+### Producer Not Responding
+
+```bash
+# Check producer logs
+docker compose logs producer
+
+# Test health endpoint
+curl http://localhost:10001/health
+```
+
+### Consumer Validation Failing
+
+```bash
+# Check if schema is registered correctly
+docker compose logs cvt-server | grep "calculator-api"
+
+# Try running without validation first
+make consumer-1-add  # Should work
+make consumer-1-add-validate  # Then try with validation
+```

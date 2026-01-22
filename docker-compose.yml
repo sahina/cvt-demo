@@ -1,0 +1,80 @@
+services:
+  # CVT Server - Contract validation service
+  cvt-server:
+    build:
+      context: ../cvt/server
+      dockerfile: Dockerfile
+    container_name: cvt-server
+    ports:
+      - "9550:9550"   # gRPC port
+      - "9551:9551"   # Metrics port
+    environment:
+      - LOG_LEVEL=info
+      - CVT_PORT=9550
+      - CVT_METRICS_PORT=9551
+      - CVT_STORAGE_ENABLED=false
+    networks:
+      - cvt-demo-network
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:9550"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # Producer - Go Calculator API
+  producer:
+    build:
+      context: ..
+      dockerfile: cvt-demo/producer/Dockerfile
+    container_name: producer
+    ports:
+      - "10001:10001"
+    environment:
+      - PORT=10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.yaml
+      - CVT_ENABLED=true
+    depends_on:
+      cvt-server:
+        condition: service_healthy
+    networks:
+      - cvt-demo-network
+    restart: unless-stopped
+
+  # Consumer-1 - Node.js CLI (run as one-off container)
+  consumer-1:
+    build:
+      context: ..
+      dockerfile: cvt-demo/consumer-1/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.yaml
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
+  # Consumer-2 - Python CLI (run as one-off container)
+  consumer-2:
+    build:
+      context: ..
+      dockerfile: cvt-demo/consumer-2/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.yaml
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
+networks:
+  cvt-demo-network:
+    driver: bridge

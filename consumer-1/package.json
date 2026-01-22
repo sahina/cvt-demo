@@ -1,0 +1,20 @@
+{
+  "name": "consumer-1",
+  "version": "1.0.0",
+  "description": "Consumer 1 CLI - Uses add and subtract operations from calculator API",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node main.js",
+    "add": "node main.js add",
+    "subtract": "node main.js subtract"
+  },
+  "keywords": ["calculator", "cli", "cvt"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cvt/cvt-sdk": "file:../../cvt/sdks/node",
+    "axios": "^1.6.0",
+    "commander": "^11.1.0"
+  }
+}
