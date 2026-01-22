@@ -13,11 +13,9 @@ COPY cvt-demo/consumer-1/main.js ./
 # Copy the OpenAPI schema for validation
 COPY cvt-demo/producer/calculator-api.yaml ./calculator-api.yaml
 
-# Update the SDK path for Docker context
-RUN sed -i 's|file:../../cvt/sdks/node|file:/cvt/sdks/node|g' package.json
-
-# Install dependencies
-RUN npm install
+# Update the SDK path for Docker context and install dependencies
+RUN sed -i 's|file:../../cvt/sdks/node|file:/cvt/sdks/node|g' package.json && \
+    npm install
 
 # Set environment variables
 ENV PRODUCER_URL=http://producer:10001

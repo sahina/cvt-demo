@@ -14,11 +14,9 @@ COPY cvt-demo /build/cvt-demo
 
 WORKDIR /build/cvt-demo/producer
 
-# Update replace directive for Docker context
-RUN sed -i 's|../../cvt/sdks/go|/cvt/sdks/go|g' go.mod
-
-# Download dependencies and build
-RUN go mod tidy && \
+# Update replace directive, download dependencies, and build
+RUN sed -i 's|../../cvt/sdks/go|/cvt/sdks/go|g' go.mod && \
+    go mod tidy && \
     CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /calculator-api .
 
 # Runtime stage
