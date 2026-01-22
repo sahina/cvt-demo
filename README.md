@@ -4,7 +4,7 @@ This demo application showcases the **Contract Validator Toolkit (CVT)** for API
 
 ## Architecture
 
-```
+```text
                     ┌─────────────────┐
                     │   CVT Server    │
                     │   (port 9550)   │
@@ -198,32 +198,33 @@ make consumer-2-multiply-validate
 
 ### Calculator API Endpoints
 
-| Endpoint | Method | Parameters | Response |
-|----------|--------|------------|----------|
-| `/add` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
-| `/subtract` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
-| `/multiply` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
-| `/divide` | GET | `a`, `b` (numbers) | `{"result": <number>}` |
-| `/health` | GET | - | `{"status": "healthy"}` |
+| Endpoint    | Method | Parameters         | Response                |
+| ----------- | ------ | ------------------ | ----------------------- |
+| `/add`      | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/subtract` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/multiply` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/divide`   | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/health`   | GET    | -                  | `{"status": "healthy"}` |
 
 ### Error Responses
 
 All endpoints return 400 Bad Request for:
-- Missing `a` or `b` parameters
+
+- Missing `x` or `y` parameters
 - Non-numeric parameter values
 - Division by zero (for `/divide`)
 
 ```json
-{"error": "error message"}
+{ "error": "error message" }
 ```
 
 ## Port Assignments
 
-| Service | Port |
-|---------|------|
-| CVT Server (gRPC) | 9550 |
-| CVT Server (Metrics) | 9551 |
-| Producer | 10001 |
+| Service              | Port  |
+| -------------------- | ----- |
+| CVT Server (gRPC)    | 9550  |
+| CVT Server (Metrics) | 9551  |
+| Producer             | 10001 |
 
 ## Make Targets
 
@@ -269,7 +270,7 @@ make consumer-2-divide x=100 y=4     # 100 / 4 = 25
 
 ## Project Structure
 
-```
+```text
 cvt-demo/
 ├── docker-compose.yml     # Service orchestration
 ├── Makefile               # Convenience commands
@@ -294,6 +295,7 @@ cvt-demo/
 ### Local Development (without Docker)
 
 **Producer:**
+
 ```bash
 cd producer
 go mod tidy
@@ -301,6 +303,7 @@ go run main.go
 ```
 
 **Consumer-1:**
+
 ```bash
 cd consumer-1
 npm install
@@ -308,6 +311,7 @@ node main.js add 5 3
 ```
 
 **Consumer-2:**
+
 ```bash
 cd consumer-2
 uv sync
@@ -316,12 +320,12 @@ uv run python main.py add 5 3
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PRODUCER_URL` | `http://localhost:10001` | Producer API URL |
-| `CVT_SERVER_ADDR` | `localhost:9550` | CVT gRPC server address |
-| `SCHEMA_PATH` | `./calculator-api.yaml` | Path to OpenAPI schema |
-| `CVT_ENABLED` | `true` | Enable/disable CVT on producer |
+| Variable          | Default                  | Description                    |
+| ----------------- | ------------------------ | ------------------------------ |
+| `PRODUCER_URL`    | `http://localhost:10001` | Producer API URL               |
+| `CVT_SERVER_ADDR` | `localhost:9550`         | CVT gRPC server address        |
+| `SCHEMA_PATH`     | `./calculator-api.yaml`  | Path to OpenAPI schema         |
+| `CVT_ENABLED`     | `true`                   | Enable/disable CVT on producer |
 
 ## Troubleshooting
 
