@@ -68,12 +68,31 @@ uv run python main.py divide 10 2
 - Docker and Docker Compose
 - Make (optional, for convenience commands)
 - curl and jq (for direct API testing)
+- Access to the CVT repository (for SDKs and server)
 
 ## Quick Start
 
-### 1. Start the Infrastructure
+### 1. Clone the Repositories
+
+This demo requires the CVT repository to be cloned alongside it (the docker-compose.yml mounts the CVT server and SDKs from the parent directory).
 
 ```bash
+# Clone both repositories side by side
+cd /path/to/your/workspace
+git clone https://github.com/sahina/cvt.git
+git clone https://github.com/sahina/cvt-demo.git
+
+# Your directory structure should look like:
+# workspace/
+# ├── cvt/           # CVT server and SDKs
+# └── cvt-demo/      # This demo application
+```
+
+### 2. Start the Infrastructure
+
+```bash
+cd cvt-demo
+
 # Build and start CVT server + producer
 make up
 
@@ -81,7 +100,7 @@ make up
 docker compose up -d
 ```
 
-### 2. Test the Producer Directly
+### 3. Test the Producer Directly
 
 ```bash
 # Test all endpoints
@@ -92,7 +111,7 @@ curl "http://localhost:10001/add?a=5&b=3"
 # Expected: {"result":8}
 ```
 
-### 3. Run Consumer-1 (Node.js)
+### 4. Run Consumer-1 (Node.js)
 
 ```bash
 # Without CVT validation (default: A=5, B=3)
@@ -107,7 +126,7 @@ make consumer-1-add-validate
 make consumer-1-subtract-validate x=100 y=50
 ```
 
-### 4. Run Consumer-2 (Python)
+### 5. Run Consumer-2 (Python)
 
 ```bash
 # Without CVT validation (default: A=5, B=3)
@@ -125,7 +144,7 @@ make consumer-2-multiply-validate x=12 y=12
 make consumer-2-divide-validate
 ```
 
-### 5. Run All Tests
+### 6. Run All Tests
 
 ```bash
 # Run all consumer operations
@@ -135,7 +154,7 @@ make test-all
 make test-contracts
 ```
 
-### 6. Stop Everything
+### 7. Stop Everything
 
 ```bash
 make down
