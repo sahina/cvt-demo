@@ -4,7 +4,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install uv for dependency management
-RUN pip install uv
+RUN pip install --no-cache-dir uv
 
 # Copy CVT SDK
 COPY cvt/sdks/python /cvt/sdks/python

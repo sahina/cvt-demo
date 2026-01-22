@@ -5,6 +5,10 @@
 	consumer-2-add-validate consumer-2-multiply-validate consumer-2-divide-validate \
 	shell-producer shell-cvt test-producer
 
+# Default values for calculator operations
+x ?= 5
+y ?= 3
+
 # Default target
 help:
 	@echo "CVT Demo Application"
@@ -20,18 +24,21 @@ help:
 	@echo "  make test-producer      - Test producer endpoints directly"
 	@echo ""
 	@echo "Consumer-1 Operations (Node.js - add, subtract):"
-	@echo "  make consumer-1-add             - Run: add 5 3"
-	@echo "  make consumer-1-subtract        - Run: subtract 10 4"
-	@echo "  make consumer-1-add-validate    - Run: add 5 3 --validate"
-	@echo "  make consumer-1-subtract-validate - Run: subtract 10 4 --validate"
+	@echo "  make consumer-1-add             - Run: add (default: 5 + 3)"
+	@echo "  make consumer-1-subtract        - Run: subtract (default: 5 - 3)"
+	@echo "  make consumer-1-add-validate    - With CVT validation"
+	@echo "  make consumer-1-subtract-validate - With CVT validation"
 	@echo ""
 	@echo "Consumer-2 Operations (Python - add, multiply, divide):"
-	@echo "  make consumer-2-add             - Run: add 5 3"
-	@echo "  make consumer-2-multiply        - Run: multiply 4 7"
-	@echo "  make consumer-2-divide          - Run: divide 10 2"
-	@echo "  make consumer-2-add-validate    - Run: add 5 3 --validate"
-	@echo "  make consumer-2-multiply-validate - Run: multiply 4 7 --validate"
-	@echo "  make consumer-2-divide-validate - Run: divide 10 2 --validate"
+	@echo "  make consumer-2-add             - Run: add (default: 5 + 3)"
+	@echo "  make consumer-2-multiply        - Run: multiply (default: 5 * 3)"
+	@echo "  make consumer-2-divide          - Run: divide (default: 5 / 3)"
+	@echo "  make consumer-2-add-validate    - With CVT validation"
+	@echo "  make consumer-2-multiply-validate - With CVT validation"
+	@echo "  make consumer-2-divide-validate - With CVT validation"
+	@echo ""
+	@echo "Custom values: make <target> x=<num> y=<num>"
+	@echo "  Example: make consumer-1-add x=10 y=20"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-all           - Run all consumer operations"
@@ -85,49 +92,53 @@ test-producer:
 
 # =============================================================================
 # Consumer-1 Operations (without validation)
+# Usage: make consumer-1-add x=4 y=5
 # =============================================================================
 
 consumer-1-add:
-	docker compose run --rm consumer-1 add 5 3
+	docker compose run --rm consumer-1 add $(x) $(y)
 
 consumer-1-subtract:
-	docker compose run --rm consumer-1 subtract 10 4
+	docker compose run --rm consumer-1 subtract $(x) $(y)
 
 # =============================================================================
 # Consumer-1 Operations (with CVT validation)
+# Usage: make consumer-1-add-validate x=4 y=5
 # =============================================================================
 
 consumer-1-add-validate:
-	docker compose run --rm consumer-1 add 5 3 --validate
+	docker compose run --rm consumer-1 add $(x) $(y) --validate
 
 consumer-1-subtract-validate:
-	docker compose run --rm consumer-1 subtract 10 4 --validate
+	docker compose run --rm consumer-1 subtract $(x) $(y) --validate
 
 # =============================================================================
 # Consumer-2 Operations (without validation)
+# Usage: make consumer-2-multiply x=4 y=7
 # =============================================================================
 
 consumer-2-add:
-	docker compose run --rm consumer-2 add 5 3
+	docker compose run --rm consumer-2 add $(x) $(y)
 
 consumer-2-multiply:
-	docker compose run --rm consumer-2 multiply 4 7
+	docker compose run --rm consumer-2 multiply $(x) $(y)
 
 consumer-2-divide:
-	docker compose run --rm consumer-2 divide 10 2
+	docker compose run --rm consumer-2 divide $(x) $(y)
 
 # =============================================================================
 # Consumer-2 Operations (with CVT validation)
+# Usage: make consumer-2-multiply-validate x=4 y=7
 # =============================================================================
 
 consumer-2-add-validate:
-	docker compose run --rm consumer-2 add 5 3 --validate
+	docker compose run --rm consumer-2 add $(x) $(y) --validate
 
 consumer-2-multiply-validate:
-	docker compose run --rm consumer-2 multiply 4 7 --validate
+	docker compose run --rm consumer-2 multiply $(x) $(y) --validate
 
 consumer-2-divide-validate:
-	docker compose run --rm consumer-2 divide 10 2 --validate
+	docker compose run --rm consumer-2 divide $(x) $(y) --validate
 
 # =============================================================================
 # Testing

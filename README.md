@@ -35,6 +35,13 @@ A Go HTTP server implementing the Calculator API with 4 endpoints:
 - `GET /multiply?a=<num>&b=<num>` - Multiply two numbers
 - `GET /divide?a=<num>&b=<num>` - Divide two numbers
 
+```bash
+curl "http://localhost:10001/add?a=5&b=3"       # {"result":8}
+curl "http://localhost:10001/subtract?a=10&b=4" # {"result":6}
+curl "http://localhost:10001/multiply?a=4&b=7"  # {"result":28}
+curl "http://localhost:10001/divide?a=20&b=4"   # {"result":5}
+```
+
 The producer uses CVT middleware for runtime contract validation against `calculator-api.yaml`.
 
 ### Consumer-1 (Node.js)
@@ -51,9 +58,9 @@ node main.js subtract 10 4
 A CLI tool that calls the Calculator API for **add**, **multiply**, and **divide** operations:
 
 ```bash
-python main.py add 5 3
-python main.py multiply 4 7
-python main.py divide 10 2
+uv run python main.py add 5 3
+uv run python main.py multiply 4 7
+uv run python main.py divide 10 2
 ```
 
 ## Prerequisites
@@ -88,26 +95,33 @@ curl "http://localhost:10001/add?a=5&b=3"
 ### 3. Run Consumer-1 (Node.js)
 
 ```bash
-# Without CVT validation (default)
+# Without CVT validation (default: A=5, B=3)
 make consumer-1-add
 make consumer-1-subtract
 
+# With custom values
+make consumer-1-add x=10 y=20
+
 # With CVT validation
 make consumer-1-add-validate
-make consumer-1-subtract-validate
+make consumer-1-subtract-validate x=100 y=50
 ```
 
 ### 4. Run Consumer-2 (Python)
 
 ```bash
-# Without CVT validation (default)
+# Without CVT validation (default: A=5, B=3)
 make consumer-2-add
 make consumer-2-multiply
 make consumer-2-divide
 
+# With custom values
+make consumer-2-multiply x=7 y=8
+make consumer-2-divide x=100 y=4
+
 # With CVT validation
 make consumer-2-add-validate
-make consumer-2-multiply-validate
+make consumer-2-multiply-validate x=12 y=12
 make consumer-2-divide-validate
 ```
 
@@ -144,7 +158,7 @@ Both consumers support optional CVT validation via the `--validate` flag:
 node main.js add 5 3 --validate
 
 # Python consumer
-python main.py add 5 3 --validate
+uv run python main.py add 5 3 --validate
 ```
 
 When validation fails, the consumer exits with error code 1 and prints the validation errors.
@@ -234,6 +248,14 @@ make help  # Show all available targets
 - `make consumer-2-divide` - Run divide operation (Python)
 
 Add `-validate` suffix for CVT validation (e.g., `make consumer-1-add-validate`).
+
+**Custom values:** Pass `x` and `y` parameters to use custom numbers (default: x=5, y=3):
+
+```bash
+make consumer-1-add x=10 y=20        # 10 + 20 = 30
+make consumer-2-multiply x=7 y=8     # 7 * 8 = 56
+make consumer-2-divide x=100 y=4     # 100 / 4 = 25
+```
 
 ### Testing
 

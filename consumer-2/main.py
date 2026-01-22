@@ -36,12 +36,17 @@ def create_session(validate: bool) -> requests.Session:
             session = ContractValidatingSession(
                 validator,
                 auto_validate=True,
-                on_validation_failure=lambda result, req, resp: validation_failure_handler(result),
+                on_validation_failure=lambda result,
+                req,
+                resp: validation_failure_handler(result),
             )
             print("CVT validation enabled", file=sys.stderr)
             return session
         except ImportError:
-            print("Warning: CVT SDK not installed. Run with --validate requires cvt-sdk.", file=sys.stderr)
+            print(
+                "Warning: CVT SDK not installed. Run with --validate requires cvt-sdk.",
+                file=sys.stderr,
+            )
             print("Continuing without validation...", file=sys.stderr)
         except Exception as e:
             print(f"Warning: Failed to enable CVT validation: {e}", file=sys.stderr)
@@ -73,7 +78,9 @@ def handle_error(error: Exception) -> None:
         else:
             print(f"Error: {error}", file=sys.stderr)
     elif isinstance(error, requests.exceptions.ConnectionError):
-        print("Error: No response from server. Is the producer running?", file=sys.stderr)
+        print(
+            "Error: No response from server. Is the producer running?", file=sys.stderr
+        )
     else:
         print(f"Error: {error}", file=sys.stderr)
     sys.exit(1)
@@ -128,19 +135,25 @@ def main() -> None:
     add_parser = subparsers.add_parser("add", help="Add two numbers")
     add_parser.add_argument("a", type=float, help="First number")
     add_parser.add_argument("b", type=float, help="Second number")
-    add_parser.add_argument("--validate", action="store_true", help="Enable CVT contract validation")
+    add_parser.add_argument(
+        "--validate", action="store_true", help="Enable CVT contract validation"
+    )
 
     # Multiply command
     multiply_parser = subparsers.add_parser("multiply", help="Multiply two numbers")
     multiply_parser.add_argument("a", type=float, help="First number")
     multiply_parser.add_argument("b", type=float, help="Second number")
-    multiply_parser.add_argument("--validate", action="store_true", help="Enable CVT contract validation")
+    multiply_parser.add_argument(
+        "--validate", action="store_true", help="Enable CVT contract validation"
+    )
 
     # Divide command
     divide_parser = subparsers.add_parser("divide", help="Divide two numbers")
     divide_parser.add_argument("a", type=float, help="First number (dividend)")
     divide_parser.add_argument("b", type=float, help="Second number (divisor)")
-    divide_parser.add_argument("--validate", action="store_true", help="Enable CVT contract validation")
+    divide_parser.add_argument(
+        "--validate", action="store_true", help="Enable CVT contract validation"
+    )
 
     args = parser.parse_args()
 
