@@ -48,6 +48,7 @@ describe('Consumer Registration', () => {
         consumerVersion: CONSUMER_VERSION,
         environment: ENVIRONMENT,
         schemaVersion: '1.0.0',
+        schemaId: 'calculator-api',
       });
 
       expect(opts.consumerId).toBe(CONSUMER_ID);
@@ -72,6 +73,7 @@ describe('Consumer Registration', () => {
           consumerVersion: CONSUMER_VERSION,
           environment: ENVIRONMENT,
           schemaVersion: '1.0.0',
+          schemaId: 'calculator-api',
         }
       );
 

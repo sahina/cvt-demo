@@ -31,6 +31,7 @@ class TestConsumerRegistration:
                 consumer_version=consumer_version,
                 environment=environment,
                 schema_version="1.0.0",
+                schema_id="calculator-api",
             ),
         )
 
@@ -61,11 +62,12 @@ class TestConsumerRegistration:
                 consumer_version=consumer_version,
                 environment=environment,
                 schema_version="1.0.0",
+                schema_id="calculator-api",
             ),
         )
 
         assert consumer is not None
-        assert consumer.consumer_id == consumer_id
+        assert consumer["consumer_id"] == consumer_id
 
 
 class TestManualRegistration:
@@ -91,7 +93,7 @@ class TestManualRegistration:
         )
 
         assert consumer is not None
-        assert consumer.consumer_id == consumer_id
+        assert consumer["consumer_id"] == consumer_id
 
     def test_list_registered_consumers(
         self, validator, consumer_id, consumer_version, environment
@@ -117,7 +119,7 @@ class TestManualRegistration:
 
         assert consumers is not None
         assert isinstance(consumers, list)
-        assert any(c.consumer_id == consumer_id for c in consumers)
+        assert any(c["consumer_id"] == consumer_id for c in consumers)
 
 
 class TestBreakingChangeDetection:
