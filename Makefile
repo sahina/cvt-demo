@@ -1,4 +1,4 @@
-.PHONY: help build up down logs clean test-all \
+.PHONY: help build up down logs clean test-all test \
 	consumer-1-add consumer-1-subtract \
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
@@ -58,6 +58,7 @@ help:
 	@echo "  make test-consumer-2-registration - Run Consumer-2 registration tests"
 	@echo "  make test-unit          - Run all mock/unit tests"
 	@echo "  make test-integration   - Run all integration tests"
+	@echo "  make test               - Run all tests (unit + integration)"
 	@echo ""
 	@echo "Breaking Change Demo:"
 	@echo "  make demo-breaking-change - Demo CVT breaking change detection"
@@ -252,6 +253,20 @@ test-integration:
 	@$(MAKE) -s test-consumer-2-integration
 	@echo ""
 	@echo "All integration tests completed!"
+
+# Run all tests (unit + integration)
+test:
+	@echo "============================================"
+	@echo "Running All Consumer Contract Tests"
+	@echo "============================================"
+	@echo ""
+	@$(MAKE) -s test-unit
+	@echo ""
+	@$(MAKE) -s test-integration
+	@echo ""
+	@echo "============================================"
+	@echo "All tests completed!"
+	@echo "============================================"
 
 # =============================================================================
 # Breaking Change Demo
