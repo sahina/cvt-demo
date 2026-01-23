@@ -166,9 +166,15 @@ Both consumers support optional CVT validation via the `--validate` flag:
 
 ### How It Works
 
-1. **Producer-side validation**: The producer always validates requests/responses against the OpenAPI schema using CVT middleware.
+**Runtime validation** (when running the CLI tools):
 
-2. **Consumer-side validation** (optional): When `--validate` is enabled, consumers also validate responses through the CVT server.
+1. **Producer-side validation**: Every HTTP request/response is validated against the OpenAPI schema using CVT middleware as it passes through the producer server (enabled by default, can be disabled via `CVT_ENABLED=false`).
+
+2. **Consumer-side validation** (optional): When `--validate` is enabled, consumers validate responses through the CVT server after each HTTP call.
+
+**Test-time validation** (when running contract tests):
+
+The contract tests in `consumer-1/tests/` and `consumer-2/tests/` use CVT to validate API interactions during test execution. See [Consumer Contract Tests](#consumer-contract-tests) for details on the three validation approaches (Manual, HTTP Adapter, and Mock Client).
 
 ### Enabling Validation
 
