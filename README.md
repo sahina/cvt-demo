@@ -1,6 +1,6 @@
 # CVT Demo Application
 
-This demo application showcases the **Contract Validator Toolkit (CVT)** for API contract testing. It demonstrates how CVT enables runtime contract validation between API producers and consumers.
+This demo application showcases the **[Contract Validator Toolkit (CVT)](https://github.com/sahina/cvt)** for API contract testing. It demonstrates how CVT enables runtime contract validation between API producers and consumers.
 
 ## Architecture
 
