@@ -3,9 +3,9 @@
 Consumer-2: A CLI tool that uses the Calculator API for add, multiply, and divide operations.
 
 Usage:
-    python main.py add <a> <b> [--validate]
-    python main.py multiply <a> <b> [--validate]
-    python main.py divide <a> <b> [--validate]
+    python main.py add <x> <y> [--validate]
+    python main.py multiply <x> <y> [--validate]
+    python main.py divide <x> <y> [--validate]
 
 Options:
     --validate  Enable CVT contract validation (default: off)
@@ -86,38 +86,38 @@ def handle_error(error: Exception) -> None:
     sys.exit(1)
 
 
-def add(a: float, b: float, validate: bool) -> None:
+def add(x: float, y: float, validate: bool) -> None:
     """Performs an add operation."""
     try:
         session = create_session(validate)
-        response = session.get(f"{PRODUCER_URL}/add", params={"a": a, "b": b})
+        response = session.get(f"{PRODUCER_URL}/add", params={"x": x, "y": y})
         response.raise_for_status()
         result = response.json()["result"]
-        print(f"{a} + {b} = {result}")
+        print(f"{x} + {y} = {result}")
     except Exception as e:
         handle_error(e)
 
 
-def multiply(a: float, b: float, validate: bool) -> None:
+def multiply(x: float, y: float, validate: bool) -> None:
     """Performs a multiply operation."""
     try:
         session = create_session(validate)
-        response = session.get(f"{PRODUCER_URL}/multiply", params={"a": a, "b": b})
+        response = session.get(f"{PRODUCER_URL}/multiply", params={"x": x, "y": y})
         response.raise_for_status()
         result = response.json()["result"]
-        print(f"{a} * {b} = {result}")
+        print(f"{x} * {y} = {result}")
     except Exception as e:
         handle_error(e)
 
 
-def divide(a: float, b: float, validate: bool) -> None:
+def divide(x: float, y: float, validate: bool) -> None:
     """Performs a divide operation."""
     try:
         session = create_session(validate)
-        response = session.get(f"{PRODUCER_URL}/divide", params={"a": a, "b": b})
+        response = session.get(f"{PRODUCER_URL}/divide", params={"x": x, "y": y})
         response.raise_for_status()
         result = response.json()["result"]
-        print(f"{a} / {b} = {result}")
+        print(f"{x} / {y} = {result}")
     except Exception as e:
         handle_error(e)
 
@@ -133,24 +133,24 @@ def main() -> None:
 
     # Add command
     add_parser = subparsers.add_parser("add", help="Add two numbers")
-    add_parser.add_argument("a", type=float, help="First number")
-    add_parser.add_argument("b", type=float, help="Second number")
+    add_parser.add_argument("x", type=float, help="First number")
+    add_parser.add_argument("y", type=float, help="Second number")
     add_parser.add_argument(
         "--validate", action="store_true", help="Enable CVT contract validation"
     )
 
     # Multiply command
     multiply_parser = subparsers.add_parser("multiply", help="Multiply two numbers")
-    multiply_parser.add_argument("a", type=float, help="First number")
-    multiply_parser.add_argument("b", type=float, help="Second number")
+    multiply_parser.add_argument("x", type=float, help="First number")
+    multiply_parser.add_argument("y", type=float, help="Second number")
     multiply_parser.add_argument(
         "--validate", action="store_true", help="Enable CVT contract validation"
     )
 
     # Divide command
     divide_parser = subparsers.add_parser("divide", help="Divide two numbers")
-    divide_parser.add_argument("a", type=float, help="First number (dividend)")
-    divide_parser.add_argument("b", type=float, help="Second number (divisor)")
+    divide_parser.add_argument("x", type=float, help="First number (dividend)")
+    divide_parser.add_argument("y", type=float, help="Second number (divisor)")
     divide_parser.add_argument(
         "--validate", action="store_true", help="Enable CVT contract validation"
     )
@@ -162,11 +162,11 @@ def main() -> None:
         sys.exit(1)
 
     if args.command == "add":
-        add(args.a, args.b, args.validate)
+        add(args.x, args.y, args.validate)
     elif args.command == "multiply":
-        multiply(args.a, args.b, args.validate)
+        multiply(args.x, args.y, args.validate)
     elif args.command == "divide":
-        divide(args.a, args.b, args.validate)
+        divide(args.x, args.y, args.validate)
 
 
 if __name__ == "__main__":

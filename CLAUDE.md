@@ -84,7 +84,7 @@ make demo-breaking-change
 
 ### API Endpoints
 
-All endpoints accept query params `a` and `b` (numbers) and return `{"result": <number>}`:
+All endpoints accept query params `x` and `y` (numbers) and return `{"result": <number>}`:
 - `GET /add`, `/subtract`, `/multiply`, `/divide`
 - `GET /health` returns `{"status": "healthy"}`
 

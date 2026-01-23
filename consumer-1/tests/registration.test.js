@@ -51,8 +51,8 @@ describe('Consumer Registration', () => {
 
   describe('Auto-registration from interactions', () => {
     test('should capture interactions for auto-registration', async () => {
-      await mock.fetch('http://calculator-api/add?a=5&b=3');
-      await mock.fetch('http://calculator-api/subtract?a=10&b=4');
+      await mock.fetch('http://calculator-api/add?x=5&y=3');
+      await mock.fetch('http://calculator-api/subtract?x=10&y=4');
 
       const interactions = mock.getInteractions();
       expect(interactions.length).toBe(2);
@@ -75,8 +75,8 @@ describe('Consumer Registration', () => {
     });
 
     test('should register consumer from captured interactions', async () => {
-      await mock.fetch('http://calculator-api/add?a=1&b=2');
-      await mock.fetch('http://calculator-api/subtract?a=5&b=3');
+      await mock.fetch('http://calculator-api/add?x=1&y=2');
+      await mock.fetch('http://calculator-api/subtract?x=5&y=3');
 
       const interactions = mock.getInteractions();
 

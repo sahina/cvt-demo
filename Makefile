@@ -74,7 +74,7 @@ help:
 build:
 	docker compose build
 
-up:
+up: build
 	docker compose up -d
 
 down:
@@ -94,17 +94,17 @@ clean:
 test-producer:
 	@echo "Testing producer endpoints..."
 	@echo ""
-	@echo "GET /add?a=5&b=3"
-	@curl -s "http://localhost:10001/add?a=5&b=3" | jq .
+	@echo "GET /add?x=5&y=3"
+	@curl -s "http://localhost:10001/add?x=5&y=3" | jq .
 	@echo ""
-	@echo "GET /subtract?a=10&b=4"
-	@curl -s "http://localhost:10001/subtract?a=10&b=4" | jq .
+	@echo "GET /subtract?x=10&y=4"
+	@curl -s "http://localhost:10001/subtract?x=10&y=4" | jq .
 	@echo ""
-	@echo "GET /multiply?a=4&b=7"
-	@curl -s "http://localhost:10001/multiply?a=4&b=7" | jq .
+	@echo "GET /multiply?x=4&y=7"
+	@curl -s "http://localhost:10001/multiply?x=4&y=7" | jq .
 	@echo ""
-	@echo "GET /divide?a=10&b=2"
-	@curl -s "http://localhost:10001/divide?a=10&b=2" | jq .
+	@echo "GET /divide?x=10&y=2"
+	@curl -s "http://localhost:10001/divide?x=10&y=2" | jq .
 	@echo ""
 	@echo "GET /health"
 	@curl -s "http://localhost:10001/health" | jq .

@@ -42,11 +42,11 @@ describe('Manual Validation Approach', () => {
 
   describe('/add endpoint', () => {
     test('should validate successful add operation', async () => {
-      const response = await client.get('/add', { params: { a: 5, b: 3 } });
+      const response = await client.get('/add', { params: { x: 5, y: 3 } });
 
       const request = {
         method: 'GET',
-        path: '/add?a=5&b=3',
+        path: '/add?x=5&y=3',
         headers: {},
       };
 
@@ -66,7 +66,7 @@ describe('Manual Validation Approach', () => {
     test('should detect missing result field in response', async () => {
       const request = {
         method: 'GET',
-        path: '/add?a=5&b=3',
+        path: '/add?x=5&y=3',
         headers: {},
       };
 
@@ -87,7 +87,7 @@ describe('Manual Validation Approach', () => {
       // Using valid request params since CVT validates the entire request/response pair
       const request = {
         method: 'GET',
-        path: '/add?a=5&b=3',
+        path: '/add?x=5&y=3',
         headers: {},
       };
 
@@ -105,11 +105,11 @@ describe('Manual Validation Approach', () => {
 
   describe('/subtract endpoint', () => {
     test('should validate successful subtract operation', async () => {
-      const response = await client.get('/subtract', { params: { a: 10, b: 4 } });
+      const response = await client.get('/subtract', { params: { x: 10, y: 4 } });
 
       const request = {
         method: 'GET',
-        path: '/subtract?a=10&b=4',
+        path: '/subtract?x=10&y=4',
         headers: {},
       };
 
@@ -129,7 +129,7 @@ describe('Manual Validation Approach', () => {
     test('should detect incorrect response structure', async () => {
       const request = {
         method: 'GET',
-        path: '/subtract?a=10&b=4',
+        path: '/subtract?x=10&y=4',
         headers: {},
       };
 

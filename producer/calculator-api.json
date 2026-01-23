@@ -18,14 +18,14 @@
         "operationId": "add",
         "parameters": [
           {
-            "name": "a",
+            "name": "x",
             "in": "query",
             "required": true,
             "description": "First number",
             "schema": { "type": "number" }
           },
           {
-            "name": "b",
+            "name": "y",
             "in": "query",
             "required": true,
             "description": "Second number",
@@ -58,14 +58,14 @@
         "operationId": "subtract",
         "parameters": [
           {
-            "name": "a",
+            "name": "x",
             "in": "query",
             "required": true,
             "description": "First number (minuend)",
             "schema": { "type": "number" }
           },
           {
-            "name": "b",
+            "name": "y",
             "in": "query",
             "required": true,
             "description": "Second number (subtrahend)",
@@ -98,14 +98,14 @@
         "operationId": "multiply",
         "parameters": [
           {
-            "name": "a",
+            "name": "x",
             "in": "query",
             "required": true,
             "description": "First number",
             "schema": { "type": "number" }
           },
           {
-            "name": "b",
+            "name": "y",
             "in": "query",
             "required": true,
             "description": "Second number",
@@ -138,14 +138,14 @@
         "operationId": "divide",
         "parameters": [
           {
-            "name": "a",
+            "name": "x",
             "in": "query",
             "required": true,
             "description": "Dividend",
             "schema": { "type": "number" }
           },
           {
-            "name": "b",
+            "name": "y",
             "in": "query",
             "required": true,
             "description": "Divisor (cannot be zero)",

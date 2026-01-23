@@ -36,7 +36,7 @@ class TestHTTPAdapter:
         yield sess
 
     def test_add_with_automatic_validation(self, session, producer_url):
-        response = session.get(f"{producer_url}/add", params={"a": 5, "b": 3})
+        response = session.get(f"{producer_url}/add", params={"x": 5, "y": 3})
 
         assert response.status_code == 200
         assert response.json()["result"] == 8
@@ -50,7 +50,7 @@ class TestHTTPAdapter:
     def test_multiply_with_automatic_validation(self, session, producer_url):
         session.clear_interactions()
 
-        response = session.get(f"{producer_url}/multiply", params={"a": 6, "b": 7})
+        response = session.get(f"{producer_url}/multiply", params={"x": 6, "y": 7})
 
         assert response.status_code == 200
         assert response.json()["result"] == 42
@@ -62,7 +62,7 @@ class TestHTTPAdapter:
     def test_divide_with_automatic_validation(self, session, producer_url):
         session.clear_interactions()
 
-        response = session.get(f"{producer_url}/divide", params={"a": 20, "b": 4})
+        response = session.get(f"{producer_url}/divide", params={"x": 20, "y": 4})
 
         assert response.status_code == 200
         assert response.json()["result"] == 5.0
@@ -74,7 +74,7 @@ class TestHTTPAdapter:
     def test_divide_by_zero_error_validation(self, session, producer_url):
         session.clear_interactions()
 
-        response = session.get(f"{producer_url}/divide", params={"a": 10, "b": 0})
+        response = session.get(f"{producer_url}/divide", params={"x": 10, "y": 0})
 
         assert response.status_code == 400
         assert "error" in response.json()
@@ -86,7 +86,7 @@ class TestHTTPAdapter:
     def test_captures_request_response_details(self, session, producer_url):
         session.clear_interactions()
 
-        session.get(f"{producer_url}/add", params={"a": 100, "b": 200})
+        session.get(f"{producer_url}/add", params={"x": 100, "y": 200})
 
         interactions = session.get_interactions()
         assert len(interactions) == 1
@@ -100,9 +100,9 @@ class TestHTTPAdapter:
     def test_multiple_operations_captured(self, session, producer_url):
         session.clear_interactions()
 
-        session.get(f"{producer_url}/add", params={"a": 1, "b": 2})
-        session.get(f"{producer_url}/multiply", params={"a": 3, "b": 4})
-        session.get(f"{producer_url}/divide", params={"a": 8, "b": 2})
+        session.get(f"{producer_url}/add", params={"x": 1, "y": 2})
+        session.get(f"{producer_url}/multiply", params={"x": 3, "y": 4})
+        session.get(f"{producer_url}/divide", params={"x": 8, "y": 2})
 
         interactions = session.get_interactions()
         assert len(interactions) == 3
