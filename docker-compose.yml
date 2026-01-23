@@ -34,7 +34,7 @@ services:
     environment:
       - PORT=10001
       - CVT_SERVER_ADDR=cvt-server:9550
-      - SCHEMA_PATH=/app/calculator-api.yaml
+      - SCHEMA_PATH=/app/calculator-api.json
       - CVT_ENABLED=true
     depends_on:
       cvt-server:
@@ -51,7 +51,7 @@ services:
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
-      - SCHEMA_PATH=/app/calculator-api.yaml
+      - SCHEMA_PATH=/app/calculator-api.json
     depends_on:
       - producer
     networks:
@@ -67,7 +67,7 @@ services:
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
-      - SCHEMA_PATH=/app/calculator-api.yaml
+      - SCHEMA_PATH=/app/calculator-api.json
     depends_on:
       - producer
     networks:
