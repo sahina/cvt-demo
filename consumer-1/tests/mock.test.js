@@ -1,8 +1,9 @@
-const { ContractValidator, createMockAdapter } = require('@cvt/cvt-sdk');
+const { ContractValidator } = require('@cvt/cvt-sdk');
+const { createMockAdapter } = require('@cvt/cvt-sdk/adapters');
 const path = require('path');
 
 const CVT_SERVER_ADDR = process.env.CVT_SERVER_ADDR || 'localhost:9550';
-const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.yaml');
+const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.json');
 
 describe('Mock Client Approach', () => {
   let validator;
@@ -57,7 +58,7 @@ describe('Mock Client Approach', () => {
 
       const validationResult = await validator.validate(
         { method: 'GET', path: '/add?a=1&b=1', headers: {} },
-        { statusCode: 200, headers: {}, body: data }
+        { statusCode: 200, headers: { 'content-type': 'application/json' }, body: data }
       );
 
       expect(validationResult.valid).toBe(true);

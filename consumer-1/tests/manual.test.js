@@ -4,7 +4,7 @@ const path = require('path');
 
 const CVT_SERVER_ADDR = process.env.CVT_SERVER_ADDR || 'localhost:9550';
 const PRODUCER_URL = process.env.PRODUCER_URL || 'http://localhost:10001';
-const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.yaml');
+const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.json');
 
 describe('Manual Validation Approach', () => {
   let validator;

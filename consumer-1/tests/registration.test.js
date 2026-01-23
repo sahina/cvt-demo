@@ -1,8 +1,9 @@
-const { ContractValidator, createMockAdapter } = require('@cvt/cvt-sdk');
+const { ContractValidator } = require('@cvt/cvt-sdk');
+const { createMockAdapter } = require('@cvt/cvt-sdk/adapters');
 const path = require('path');
 
 const CVT_SERVER_ADDR = process.env.CVT_SERVER_ADDR || 'localhost:9550';
-const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.yaml');
+const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.json');
 const CONSUMER_ID = 'consumer-1';
 const CONSUMER_VERSION = process.env.npm_package_version || '1.0.0';
 const ENVIRONMENT = process.env.CVT_ENVIRONMENT || 'demo';

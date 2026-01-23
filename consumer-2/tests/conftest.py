@@ -6,7 +6,7 @@ import pytest
 CVT_SERVER_ADDR = os.getenv("CVT_SERVER_ADDR", "localhost:9550")
 PRODUCER_URL = os.getenv("PRODUCER_URL", "http://localhost:10001")
 SCHEMA_PATH = os.getenv(
-    "SCHEMA_PATH", str(Path(__file__).parent.parent.parent / "producer" / "calculator-api.yaml")
+    "SCHEMA_PATH", str(Path(__file__).parent.parent.parent / "producer" / "calculator-api.json")
 )
 CONSUMER_ID = "consumer-2"
 CONSUMER_VERSION = "1.0.0"

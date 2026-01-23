@@ -1,5 +1,6 @@
 import pytest
 
+from cvt_sdk import GenerateOptions
 from cvt_sdk.adapters import MockSession
 
 
@@ -10,7 +11,7 @@ class TestMockClient:
         session = MockSession(
             validator,
             cache=True,
-            generate_options={"use_examples": True},
+            generate_options=GenerateOptions(use_examples=True),
         )
         yield session
         session.clear_cache()
@@ -63,7 +64,7 @@ class TestMockClient:
 
         validation_result = validator.validate(
             {"method": "GET", "path": "/add?a=1&b=1", "headers": {}},
-            {"status_code": 200, "headers": {}, "body": data},
+            {"status_code": 200, "headers": {"content-type": "application/json"}, "body": data},
         )
 
         assert validation_result["valid"] is True

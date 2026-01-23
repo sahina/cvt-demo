@@ -1,10 +1,11 @@
-const { ContractValidator, createAxiosAdapter } = require('@cvt/cvt-sdk');
+const { ContractValidator } = require('@cvt/cvt-sdk');
+const { createAxiosAdapter } = require('@cvt/cvt-sdk/adapters');
 const axios = require('axios');
 const path = require('path');
 
 const CVT_SERVER_ADDR = process.env.CVT_SERVER_ADDR || 'localhost:9550';
 const PRODUCER_URL = process.env.PRODUCER_URL || 'http://localhost:10001';
-const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.yaml');
+const SCHEMA_PATH = process.env.SCHEMA_PATH || path.join(__dirname, '../../producer/calculator-api.json');
 
 describe('HTTP Adapter Approach', () => {
   let validator;
