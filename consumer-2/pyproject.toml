@@ -12,6 +12,9 @@ dependencies = [
 cvt = [
     "cvt-sdk",
 ]
+dev = [
+    "pytest>=8.0.0",
+]
 
 [project.scripts]
 consumer-2 = "main:main"
