@@ -77,7 +77,7 @@ Tests that use `ContractValidatingSession` to automatically validate all HTTP re
 
 ```python
 session = ContractValidatingSession(validator, auto_validate=True)
-response = session.get(f"{producer_url}/add", params={"a": 5, "b": 3})
+response = session.get(f"{producer_url}/add", params={"x": 5, "y": 3})
 # Validation happens automatically
 ```
 
@@ -87,7 +87,7 @@ Tests that use `MockSession` to generate schema-compliant responses without a re
 
 ```python
 session = MockSession(validator, cache=True)
-response = session.get("http://calculator-api/add", params={"a": 5, "b": 3})
+response = session.get("http://calculator-api/add", params={"x": 5, "y": 3})
 # Response is generated from schema, no real HTTP call
 ```
 
@@ -107,9 +107,9 @@ consumer = validator.register_consumer(RegisterConsumerOptions(used_endpoints=[.
 
 Consumer-2 uses these Calculator API endpoints:
 
-- `GET /add?a={number}&b={number}` - Addition
-- `GET /multiply?a={number}&b={number}` - Multiplication
-- `GET /divide?a={number}&b={number}` - Division
+- `GET /add?x={number}&y={number}` - Addition
+- `GET /multiply?x={number}&y={number}` - Multiplication
+- `GET /divide?x={number}&y={number}` - Division
 
 ## Environment Variables
 

@@ -148,29 +148,29 @@ func main() {
 	}
 }
 
-// parseNumbers extracts and validates query parameters a and b.
+// parseNumbers extracts and validates query parameters x and y.
 func parseNumbers(w http.ResponseWriter, r *http.Request) (float64, float64, bool) {
-	aStr := r.URL.Query().Get("a")
-	bStr := r.URL.Query().Get("b")
+	xStr := r.URL.Query().Get("x")
+	yStr := r.URL.Query().Get("y")
 
-	if aStr == "" || bStr == "" {
-		writeError(w, "missing required parameters 'a' and 'b'", http.StatusBadRequest)
+	if xStr == "" || yStr == "" {
+		writeError(w, "missing required parameters 'x' and 'y'", http.StatusBadRequest)
 		return 0, 0, false
 	}
 
-	a, err := strconv.ParseFloat(aStr, 64)
+	x, err := strconv.ParseFloat(xStr, 64)
 	if err != nil {
-		writeError(w, "parameter 'a' must be a valid number", http.StatusBadRequest)
+		writeError(w, "parameter 'x' must be a valid number", http.StatusBadRequest)
 		return 0, 0, false
 	}
 
-	b, err := strconv.ParseFloat(bStr, 64)
+	y, err := strconv.ParseFloat(yStr, 64)
 	if err != nil {
-		writeError(w, "parameter 'b' must be a valid number", http.StatusBadRequest)
+		writeError(w, "parameter 'y' must be a valid number", http.StatusBadRequest)
 		return 0, 0, false
 	}
 
-	return a, b, true
+	return x, y, true
 }
 
 // writeResult writes a successful result response.
@@ -194,12 +194,12 @@ func handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, ok := parseNumbers(w, r)
+	x, y, ok := parseNumbers(w, r)
 	if !ok {
 		return
 	}
 
-	writeResult(w, a+b)
+	writeResult(w, x+y)
 }
 
 // handleSubtract handles the /subtract endpoint.
@@ -209,12 +209,12 @@ func handleSubtract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, ok := parseNumbers(w, r)
+	x, y, ok := parseNumbers(w, r)
 	if !ok {
 		return
 	}
 
-	writeResult(w, a-b)
+	writeResult(w, x-y)
 }
 
 // handleMultiply handles the /multiply endpoint.
@@ -224,12 +224,12 @@ func handleMultiply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, ok := parseNumbers(w, r)
+	x, y, ok := parseNumbers(w, r)
 	if !ok {
 		return
 	}
 
-	writeResult(w, a*b)
+	writeResult(w, x*y)
 }
 
 // handleDivide handles the /divide endpoint.
@@ -239,17 +239,17 @@ func handleDivide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, ok := parseNumbers(w, r)
+	x, y, ok := parseNumbers(w, r)
 	if !ok {
 		return
 	}
 
-	if b == 0 {
+	if y == 0 {
 		writeError(w, "division by zero is not allowed", http.StatusBadRequest)
 		return
 	}
 
-	writeResult(w, a/b)
+	writeResult(w, x/y)
 }
 
 // handleHealth handles the /health endpoint.

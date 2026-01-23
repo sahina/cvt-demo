@@ -19,11 +19,11 @@ import requests
 class TestManualValidation:
 
     def test_add_operation_valid(self, validator, producer_url):
-        response = requests.get(f"{producer_url}/add", params={"a": 5, "b": 3})
+        response = requests.get(f"{producer_url}/add", params={"x": 5, "y": 3})
 
         request = {
             "method": "GET",
-            "path": "/add?a=5&b=3",
+            "path": "/add?x=5&y=3",
             "headers": {},
         }
 
@@ -42,7 +42,7 @@ class TestManualValidation:
     def test_add_missing_result_field(self, validator):
         request = {
             "method": "GET",
-            "path": "/add?a=5&b=3",
+            "path": "/add?x=5&y=3",
             "headers": {},
         }
 
@@ -58,11 +58,11 @@ class TestManualValidation:
         assert len(result["errors"]) > 0
 
     def test_multiply_operation_valid(self, validator, producer_url):
-        response = requests.get(f"{producer_url}/multiply", params={"a": 4, "b": 7})
+        response = requests.get(f"{producer_url}/multiply", params={"x": 4, "y": 7})
 
         request = {
             "method": "GET",
-            "path": "/multiply?a=4&b=7",
+            "path": "/multiply?x=4&y=7",
             "headers": {},
         }
 
@@ -79,11 +79,11 @@ class TestManualValidation:
         assert response.json()["result"] == 28
 
     def test_divide_operation_valid(self, validator, producer_url):
-        response = requests.get(f"{producer_url}/divide", params={"a": 10, "b": 2})
+        response = requests.get(f"{producer_url}/divide", params={"x": 10, "y": 2})
 
         request = {
             "method": "GET",
-            "path": "/divide?a=10&b=2",
+            "path": "/divide?x=10&y=2",
             "headers": {},
         }
 
@@ -100,11 +100,11 @@ class TestManualValidation:
         assert response.json()["result"] == 5.0
 
     def test_divide_by_zero_error_response(self, validator, producer_url):
-        response = requests.get(f"{producer_url}/divide", params={"a": 10, "b": 0})
+        response = requests.get(f"{producer_url}/divide", params={"x": 10, "y": 0})
 
         request = {
             "method": "GET",
-            "path": "/divide?a=10&b=0",
+            "path": "/divide?x=10&y=0",
             "headers": {},
         }
 
@@ -123,7 +123,7 @@ class TestManualValidation:
     def test_error_response_invalid_structure(self, validator):
         request = {
             "method": "GET",
-            "path": "/add?a=invalid&b=3",
+            "path": "/add?x=invalid&y=3",
             "headers": {},
         }
 

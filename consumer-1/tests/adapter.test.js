@@ -62,7 +62,7 @@ describe('HTTP Adapter Approach', () => {
 
   describe('/add endpoint with automatic validation', () => {
     test('should automatically validate add operation', async () => {
-      const response = await client.get('/add', { params: { a: 5, b: 3 } });
+      const response = await client.get('/add', { params: { x: 5, y: 3 } });
 
       expect(response.status).toBe(200);
       expect(response.data.result).toBe(8);
@@ -73,7 +73,7 @@ describe('HTTP Adapter Approach', () => {
     });
 
     test('should capture request and response details', async () => {
-      await client.get('/add', { params: { a: 10, b: 20 } });
+      await client.get('/add', { params: { x: 10, y: 20 } });
 
       const interactions = adapter.getInteractions();
       expect(interactions.length).toBe(1);
@@ -88,7 +88,7 @@ describe('HTTP Adapter Approach', () => {
 
   describe('/subtract endpoint with automatic validation', () => {
     test('should automatically validate subtract operation', async () => {
-      const response = await client.get('/subtract', { params: { a: 15, b: 7 } });
+      const response = await client.get('/subtract', { params: { x: 15, y: 7 } });
 
       expect(response.status).toBe(200);
       expect(response.data.result).toBe(8);
@@ -99,7 +99,7 @@ describe('HTTP Adapter Approach', () => {
     });
 
     test('should handle negative result correctly', async () => {
-      const response = await client.get('/subtract', { params: { a: 3, b: 10 } });
+      const response = await client.get('/subtract', { params: { x: 3, y: 10 } });
 
       expect(response.status).toBe(200);
       expect(response.data.result).toBe(-7);
@@ -111,9 +111,9 @@ describe('HTTP Adapter Approach', () => {
 
   describe('multiple operations', () => {
     test('should capture multiple interactions', async () => {
-      await client.get('/add', { params: { a: 1, b: 2 } });
-      await client.get('/subtract', { params: { a: 5, b: 3 } });
-      await client.get('/add', { params: { a: 10, b: 10 } });
+      await client.get('/add', { params: { x: 1, y: 2 } });
+      await client.get('/subtract', { params: { x: 5, y: 3 } });
+      await client.get('/add', { params: { x: 10, y: 10 } });
 
       const interactions = adapter.getInteractions();
       expect(interactions.length).toBe(3);

@@ -50,7 +50,7 @@ describe('Mock Client Approach', () => {
 
   describe('/add endpoint mocking', () => {
     test('should generate valid mock response for add', async () => {
-      const response = await mock.fetch('http://calculator-api/add?a=5&b=3');
+      const response = await mock.fetch('http://calculator-api/add?x=5&y=3');
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -59,7 +59,7 @@ describe('Mock Client Approach', () => {
     });
 
     test('should capture mock interactions', async () => {
-      await mock.fetch('http://calculator-api/add?a=10&b=20');
+      await mock.fetch('http://calculator-api/add?x=10&y=20');
 
       const interactions = mock.getInteractions();
       expect(interactions.length).toBe(1);
@@ -68,11 +68,11 @@ describe('Mock Client Approach', () => {
     });
 
     test('should generate response matching schema', async () => {
-      const response = await mock.fetch('http://calculator-api/add?a=1&b=1');
+      const response = await mock.fetch('http://calculator-api/add?x=1&y=1');
       const data = await response.json();
 
       const validationResult = await validator.validate(
-        { method: 'GET', path: '/add?a=1&b=1', headers: {} },
+        { method: 'GET', path: '/add?x=1&y=1', headers: {} },
         { statusCode: 200, headers: { 'content-type': 'application/json' }, body: data }
       );
 
@@ -82,7 +82,7 @@ describe('Mock Client Approach', () => {
 
   describe('/subtract endpoint mocking', () => {
     test('should generate valid mock response for subtract', async () => {
-      const response = await mock.fetch('http://calculator-api/subtract?a=10&b=4');
+      const response = await mock.fetch('http://calculator-api/subtract?x=10&y=4');
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -91,7 +91,7 @@ describe('Mock Client Approach', () => {
     });
 
     test('should capture subtract interaction', async () => {
-      await mock.fetch('http://calculator-api/subtract?a=100&b=50');
+      await mock.fetch('http://calculator-api/subtract?x=100&y=50');
 
       const interactions = mock.getInteractions();
       expect(interactions.length).toBe(1);
@@ -101,8 +101,8 @@ describe('Mock Client Approach', () => {
 
   describe('interaction capture for registration', () => {
     test('should capture all Consumer-1 endpoints for registration', async () => {
-      await mock.fetch('http://calculator-api/add?a=5&b=3');
-      await mock.fetch('http://calculator-api/subtract?a=10&b=4');
+      await mock.fetch('http://calculator-api/add?x=5&y=3');
+      await mock.fetch('http://calculator-api/subtract?x=10&y=4');
 
       const interactions = mock.getInteractions();
       expect(interactions.length).toBe(2);

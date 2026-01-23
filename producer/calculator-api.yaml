@@ -14,13 +14,13 @@ paths:
       summary: Add two numbers
       operationId: add
       parameters:
-        - name: a
+        - name: x
           in: query
           required: true
           description: First number
           schema:
             type: number
-        - name: b
+        - name: y
           in: query
           required: true
           description: Second number
@@ -45,13 +45,13 @@ paths:
       summary: Subtract two numbers
       operationId: subtract
       parameters:
-        - name: a
+        - name: x
           in: query
           required: true
           description: First number (minuend)
           schema:
             type: number
-        - name: b
+        - name: y
           in: query
           required: true
           description: Second number (subtrahend)
@@ -76,13 +76,13 @@ paths:
       summary: Multiply two numbers
       operationId: multiply
       parameters:
-        - name: a
+        - name: x
           in: query
           required: true
           description: First number
           schema:
             type: number
-        - name: b
+        - name: y
           in: query
           required: true
           description: Second number
@@ -107,13 +107,13 @@ paths:
       summary: Divide two numbers
       operationId: divide
       parameters:
-        - name: a
+        - name: x
           in: query
           required: true
           description: Dividend
           schema:
             type: number
-        - name: b
+        - name: y
           in: query
           required: true
           description: Divisor (cannot be zero)

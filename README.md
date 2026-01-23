@@ -30,16 +30,16 @@ This demo application showcases the **[Contract Validator Toolkit (CVT)](https:/
 
 A Go HTTP server implementing the Calculator API with 4 endpoints:
 
-- `GET /add?a=<num>&b=<num>` - Add two numbers
-- `GET /subtract?a=<num>&b=<num>` - Subtract two numbers
-- `GET /multiply?a=<num>&b=<num>` - Multiply two numbers
-- `GET /divide?a=<num>&b=<num>` - Divide two numbers
+- `GET /add?x=<num>&y=<num>` - Add two numbers
+- `GET /subtract?x=<num>&y=<num>` - Subtract two numbers
+- `GET /multiply?x=<num>&y=<num>` - Multiply two numbers
+- `GET /divide?x=<num>&y=<num>` - Divide two numbers
 
 ```bash
-curl "http://localhost:10001/add?a=5&b=3"       # {"result":8}
-curl "http://localhost:10001/subtract?a=10&b=4" # {"result":6}
-curl "http://localhost:10001/multiply?a=4&b=7"  # {"result":28}
-curl "http://localhost:10001/divide?a=20&b=4"   # {"result":5}
+curl "http://localhost:10001/add?x=5&y=3"       # {"result":8}
+curl "http://localhost:10001/subtract?x=10&y=4" # {"result":6}
+curl "http://localhost:10001/multiply?x=4&y=7"  # {"result":28}
+curl "http://localhost:10001/divide?x=20&y=4"   # {"result":5}
 ```
 
 The producer uses CVT middleware for runtime contract validation against `calculator-api.yaml`.
@@ -107,7 +107,7 @@ docker compose up -d
 make test-producer
 
 # Or manually:
-curl "http://localhost:10001/add?a=5&b=3"
+curl "http://localhost:10001/add?x=5&y=3"
 # Expected: {"result":8}
 ```
 
@@ -224,21 +224,26 @@ make test-consumer-2
 
 ### Test Files
 
-**Consumer-1 (Node.js/Jest):**
+For detailed documentation on each consumer's tests, see:
 
-- `tests/manual.test.js` - Manual validation approach
-- `tests/adapter.test.js` - HTTP Adapter approach
-- `tests/mock.test.js` - Mock Client approach
-- `tests/registration.test.js` - Consumer registration (auto + manual)
+- [Consumer-1 Tests README](consumer-1/tests/README.md)
+- [Consumer-2 Tests README](consumer-2/tests/README.md)
 
-**Consumer-2 (Python/pytest):**
+#### Consumer-1 Tests (Node.js)
 
-- `tests/test_manual.py` - Manual validation approach
-- `tests/test_adapter.py` - HTTP Adapter approach
-- `tests/test_mock.py` - Mock Client approach
-- `tests/test_registration.py` - Consumer registration (auto + manual)
+- `manual.test.js` - Manual validation with explicit `validator.validate()` calls
+- `adapter.test.js` - HTTP Adapter with automatic axios interceptors
+- `mock.test.js` - Mock Client for unit testing (no producer needed)
+- `registration.test.js` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/add`, `/subtract`
 
-See `consumer-1/tests/README.md` and `consumer-2/tests/README.md` for detailed documentation.
+#### Consumer-2 Tests (Python)
+
+- `test_manual.py` - Manual validation with explicit validate calls
+- `test_adapter.py` - HTTP Adapter with `ContractValidatingSession`
+- `test_mock.py` - Mock Client for unit testing (no producer needed)
+- `test_registration.py` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/add`, `/multiply`, `/divide`
 
 ## Breaking Change Demo
 
@@ -287,10 +292,10 @@ cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo
 
 | Endpoint    | Method | Parameters         | Response                |
 | ----------- | ------ | ------------------ | ----------------------- |
-| `/add`      | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
-| `/subtract` | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
-| `/multiply` | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
-| `/divide`   | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
+| `/add`      | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/subtract` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/multiply` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/divide`   | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
 | `/health`   | GET    | -                  | `{"status": "healthy"}` |
 
 ### Error Responses

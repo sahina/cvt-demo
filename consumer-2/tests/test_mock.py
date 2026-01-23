@@ -34,7 +34,7 @@ class TestMockClient:
     def test_mock_add_response(self, mock_session):
         mock_session.clear_interactions()
 
-        response = mock_session.get("http://calculator-api/add", params={"a": 5, "b": 3})
+        response = mock_session.get("http://calculator-api/add", params={"x": 5, "y": 3})
 
         assert response.status_code == 200
         data = response.json()
@@ -44,7 +44,7 @@ class TestMockClient:
     def test_mock_multiply_response(self, mock_session):
         mock_session.clear_interactions()
 
-        response = mock_session.get("http://calculator-api/multiply", params={"a": 4, "b": 7})
+        response = mock_session.get("http://calculator-api/multiply", params={"x": 4, "y": 7})
 
         assert response.status_code == 200
         data = response.json()
@@ -54,7 +54,7 @@ class TestMockClient:
     def test_mock_divide_response(self, mock_session):
         mock_session.clear_interactions()
 
-        response = mock_session.get("http://calculator-api/divide", params={"a": 10, "b": 2})
+        response = mock_session.get("http://calculator-api/divide", params={"x": 10, "y": 2})
 
         assert response.status_code == 200
         data = response.json()
@@ -64,7 +64,7 @@ class TestMockClient:
     def test_captures_mock_interactions(self, mock_session):
         mock_session.clear_interactions()
 
-        mock_session.get("http://calculator-api/add", params={"a": 10, "b": 20})
+        mock_session.get("http://calculator-api/add", params={"x": 10, "y": 20})
 
         interactions = mock_session.get_interactions()
         assert len(interactions) == 1
@@ -74,11 +74,11 @@ class TestMockClient:
     def test_mock_response_validates_against_schema(self, mock_session, validator):
         mock_session.clear_interactions()
 
-        response = mock_session.get("http://calculator-api/add", params={"a": 1, "b": 1})
+        response = mock_session.get("http://calculator-api/add", params={"x": 1, "y": 1})
         data = response.json()
 
         validation_result = validator.validate(
-            {"method": "GET", "path": "/add?a=1&b=1", "headers": {}},
+            {"method": "GET", "path": "/add?x=1&y=1", "headers": {}},
             {"status_code": 200, "headers": {"content-type": "application/json"}, "body": data},
         )
 
@@ -87,9 +87,9 @@ class TestMockClient:
     def test_captures_all_consumer2_endpoints(self, mock_session):
         mock_session.clear_interactions()
 
-        mock_session.get("http://calculator-api/add", params={"a": 5, "b": 3})
-        mock_session.get("http://calculator-api/multiply", params={"a": 4, "b": 7})
-        mock_session.get("http://calculator-api/divide", params={"a": 10, "b": 2})
+        mock_session.get("http://calculator-api/add", params={"x": 5, "y": 3})
+        mock_session.get("http://calculator-api/multiply", params={"x": 4, "y": 7})
+        mock_session.get("http://calculator-api/divide", params={"x": 10, "y": 2})
 
         interactions = mock_session.get_interactions()
         assert len(interactions) == 3

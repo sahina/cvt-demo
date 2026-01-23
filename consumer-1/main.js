@@ -3,8 +3,8 @@
  * Consumer-1: A CLI tool that uses the Calculator API for add and subtract operations.
  *
  * Usage:
- *   node main.js add <a> <b> [--validate]
- *   node main.js subtract <a> <b> [--validate]
+ *   node main.js add <x> <y> [--validate]
+ *   node main.js subtract <x> <y> [--validate]
  *
  * Options:
  *   --validate  Enable CVT contract validation (default: off)
@@ -84,14 +84,14 @@ async function createClient(validate) {
 /**
  * Performs an add operation.
  */
-async function add(a, b, options) {
+async function add(x, y, options) {
   try {
     const client = await createClient(options.validate);
     const response = await client.get('/add', {
-      params: { a, b },
+      params: { x, y },
     });
 
-    console.log(`${a} + ${b} = ${response.data.result}`);
+    console.log(`${x} + ${y} = ${response.data.result}`);
   } catch (error) {
     handleError(error);
   }
@@ -100,14 +100,14 @@ async function add(a, b, options) {
 /**
  * Performs a subtract operation.
  */
-async function subtract(a, b, options) {
+async function subtract(x, y, options) {
   try {
     const client = await createClient(options.validate);
     const response = await client.get('/subtract', {
-      params: { a, b },
+      params: { x, y },
     });
 
-    console.log(`${a} - ${b} = ${response.data.result}`);
+    console.log(`${x} - ${y} = ${response.data.result}`);
   } catch (error) {
     handleError(error);
   }
@@ -142,35 +142,35 @@ program
   .version('1.0.0');
 
 program
-  .command('add <a> <b>')
+  .command('add <x> <y>')
   .description('Add two numbers')
   .option('--validate', 'Enable CVT contract validation', false)
-  .action((a, b, options) => {
-    const numA = parseFloat(a);
-    const numB = parseFloat(b);
+  .action((x, y, options) => {
+    const numX = parseFloat(x);
+    const numY = parseFloat(y);
 
-    if (isNaN(numA) || isNaN(numB)) {
+    if (isNaN(numX) || isNaN(numY)) {
       console.error('Error: Both arguments must be valid numbers');
       process.exit(1);
     }
 
-    add(numA, numB, options);
+    add(numX, numY, options);
   });
 
 program
-  .command('subtract <a> <b>')
+  .command('subtract <x> <y>')
   .description('Subtract two numbers')
   .option('--validate', 'Enable CVT contract validation', false)
-  .action((a, b, options) => {
-    const numA = parseFloat(a);
-    const numB = parseFloat(b);
+  .action((x, y, options) => {
+    const numX = parseFloat(x);
+    const numY = parseFloat(y);
 
-    if (isNaN(numA) || isNaN(numB)) {
+    if (isNaN(numX) || isNaN(numY)) {
       console.error('Error: Both arguments must be valid numbers');
       process.exit(1);
     }
 
-    subtract(numA, numB, options);
+    subtract(numX, numY, options);
   });
 
 program.parse();

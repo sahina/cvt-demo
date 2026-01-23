@@ -81,7 +81,7 @@ const adapter = createAxiosAdapter({
   validator,
   autoValidate: true,
 });
-await client.get("/add", { params: { a: 5, b: 3 } });
+await client.get("/add", { params: { x: 5, y: 3 } });
 // Validation happens automatically
 ```
 
@@ -90,7 +90,7 @@ await client.get("/add", { params: { a: 5, b: 3 } });
 Tests that use `createMockAdapter()` to generate schema-compliant responses without a real producer. Useful for unit testing and capturing interactions.
 
 ```javascript
-const response = await mock.fetch("http://calculator-api/add?a=5&b=3");
+const response = await mock.fetch("http://calculator-api/add?x=5&y=3");
 // Response is generated from schema, no real HTTP call
 ```
 
@@ -110,8 +110,8 @@ const consumer = await validator.registerConsumer({ usedEndpoints: [...] });
 
 Consumer-1 uses these Calculator API endpoints:
 
-- `GET /add?a={number}&b={number}` - Addition
-- `GET /subtract?a={number}&b={number}` - Subtraction
+- `GET /add?x={number}&y={number}` - Addition
+- `GET /subtract?x={number}&y={number}` - Subtraction
 
 ## Environment Variables
 

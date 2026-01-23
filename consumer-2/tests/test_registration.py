@@ -31,9 +31,9 @@ class TestConsumerRegistration:
     ):
         mock_session.clear_interactions()
 
-        mock_session.get("http://calculator-api/add", params={"a": 5, "b": 3})
-        mock_session.get("http://calculator-api/multiply", params={"a": 4, "b": 7})
-        mock_session.get("http://calculator-api/divide", params={"a": 10, "b": 2})
+        mock_session.get("http://calculator-api/add", params={"x": 5, "y": 3})
+        mock_session.get("http://calculator-api/multiply", params={"x": 4, "y": 7})
+        mock_session.get("http://calculator-api/divide", params={"x": 10, "y": 2})
 
         interactions = mock_session.get_interactions()
         assert len(interactions) == 3
@@ -63,9 +63,9 @@ class TestConsumerRegistration:
     ):
         mock_session.clear_interactions()
 
-        mock_session.get("http://calculator-api/add", params={"a": 1, "b": 2})
-        mock_session.get("http://calculator-api/multiply", params={"a": 3, "b": 4})
-        mock_session.get("http://calculator-api/divide", params={"a": 8, "b": 2})
+        mock_session.get("http://calculator-api/add", params={"x": 1, "y": 2})
+        mock_session.get("http://calculator-api/multiply", params={"x": 3, "y": 4})
+        mock_session.get("http://calculator-api/divide", params={"x": 8, "y": 2})
 
         interactions = mock_session.get_interactions()
 
