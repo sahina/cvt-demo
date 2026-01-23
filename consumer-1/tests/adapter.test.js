@@ -1,3 +1,18 @@
+/**
+ * HTTP ADAPTER APPROACH
+ * ---------------------
+ * Wraps your HTTP client to automatically validate all requests/responses against the schema.
+ *
+ * Prerequisites:
+ * - CVT server running
+ * - Producer service running
+ *
+ * When to use:
+ * - Integration tests against a real or staging API
+ * - Catch contract violations automatically during existing tests
+ * - Minimal code changes to add validation to existing test suites
+ */
+
 const { ContractValidator } = require('@cvt/cvt-sdk');
 const { createAxiosAdapter } = require('@cvt/cvt-sdk/adapters');
 const axios = require('axios');

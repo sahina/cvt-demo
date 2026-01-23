@@ -1,3 +1,17 @@
+/**
+ * CONSUMER REGISTRATION
+ * ---------------------
+ * Registers which API endpoints your service uses so breaking changes can be detected.
+ *
+ * Prerequisites:
+ * - CVT server running
+ *
+ * Key concepts:
+ * - Auto-registration: Capture interactions from mocks/adapters, then register
+ * - Manual registration: Explicitly declare used endpoints
+ * - can-i-deploy: Check if a schema change is safe for all consumers
+ */
+
 const { ContractValidator } = require('@cvt/cvt-sdk');
 const { createMockAdapter } = require('@cvt/cvt-sdk/adapters');
 const path = require('path');

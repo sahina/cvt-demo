@@ -1,3 +1,18 @@
+"""
+MANUAL VALIDATION APPROACH
+--------------------------
+Explicitly validates request/response pairs by calling validator.validate() directly.
+
+Prerequisites:
+- CVT server running
+- Producer service running (for tests that make real requests)
+
+When to use:
+- Testing specific error scenarios with crafted responses
+- Validating responses from non-HTTP sources
+- Maximum control over what gets validated and when
+"""
+
 import requests
 
 

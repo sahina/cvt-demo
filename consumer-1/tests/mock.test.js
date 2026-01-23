@@ -1,3 +1,18 @@
+/**
+ * MOCK ADAPTER APPROACH
+ * ---------------------
+ * Generates mock responses based on the OpenAPI schema without making real HTTP calls.
+ *
+ * Prerequisites:
+ * - CVT server running (for schema validation)
+ * - No producer service needed
+ *
+ * When to use:
+ * - Unit tests that need to run in isolation
+ * - CI pipelines where the producer isn't available
+ * - Testing consumer code paths without external dependencies
+ */
+
 const { ContractValidator } = require('@cvt/cvt-sdk');
 const { createMockAdapter } = require('@cvt/cvt-sdk/adapters');
 const path = require('path');

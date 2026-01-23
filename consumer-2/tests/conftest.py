@@ -1,3 +1,15 @@
+"""
+SHARED TEST FIXTURES
+--------------------
+Pytest fixtures shared across all test modules.
+
+Fixtures provided:
+- validator: Initialized ContractValidator with schema registered
+- producer_url: URL of the producer service
+- consumer_id/version: Consumer identification for registration
+- environment: Target environment name
+"""
+
 import os
 from pathlib import Path
 
