@@ -32,27 +32,24 @@ async function createClient(validate) {
 
   if (validate) {
     try {
-      const { ContractValidator, createAxiosAdapter } = require('@cvt/cvt-sdk');
+      const { ContractValidator } = require('@cvt/cvt-sdk');
 
       const validator = new ContractValidator(CVT_SERVER_ADDR);
       await validator.registerSchema('calculator-api', SCHEMA_PATH);
 
-      const adapter = createAxiosAdapter({
-        validator,
-        schemaId: 'calculator-api',
-      });
-
-      // Add request/response interceptors for validation
-      client.interceptors.request.use((config) => {
-        config._cvtStartTime = Date.now();
-        return config;
-      });
-
+      // Add response interceptor for manual validation
       client.interceptors.response.use(
         async (response) => {
+          // Build path with query string from params
+          let path = response.config.url;
+          if (response.config.params) {
+            const queryString = new URLSearchParams(response.config.params).toString();
+            path = `${path}?${queryString}`;
+          }
+
           const request = {
             method: response.config.method.toUpperCase(),
-            path: response.config.url,
+            path: path,
             headers: response.config.headers,
           };
 
