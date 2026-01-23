@@ -188,11 +188,15 @@ This demo includes comprehensive contract tests demonstrating all three CVT vali
 
 ### Validation Approaches
 
-| Approach         | Description                                                         | Requires Producer |
-| ---------------- | ------------------------------------------------------------------- | ----------------- |
-| **Manual**       | Explicit `validator.validate()` calls with request/response objects | Yes               |
-| **HTTP Adapter** | Automatic validation via axios/requests interceptors                | Yes               |
-| **Mock Client**  | Schema-generated responses without real HTTP calls                  | No                |
+| Approach         | Description                                                         | Services Required             |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------- |
+| **Manual**       | Explicit `validator.validate()` calls with request/response objects | Producer running + CVT server |
+| **HTTP Adapter** | Automatic validation via axios/requests interceptors                | Producer running + CVT server |
+| **Mock Client**  | Schema-generated responses without real HTTP calls                  | CVT server only               |
+
+- **Producer running**: The producer API must be accepting requests at `localhost:10001`
+- **CVT server**: The CVT gRPC server must be running at `localhost:9550` (for schema registration and validation)
+- Mock tests don't need the producer because CVT generates fake responses directly from the OpenAPI schema
 
 ### Running Contract Tests
 
