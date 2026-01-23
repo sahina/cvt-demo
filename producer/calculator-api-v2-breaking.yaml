@@ -1,0 +1,154 @@
+openapi: 3.0.3
+info:
+  title: Calculator API
+  description: A simple calculator API for basic arithmetic operations
+  version: 2.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /add:
+    get:
+      summary: Add two numbers
+      operationId: add
+      parameters:
+        - name: a
+          in: query
+          required: true
+          description: First number
+          schema:
+            type: number
+        - name: b
+          in: query
+          required: true
+          description: Second number
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /subtract:
+    get:
+      summary: Subtract two numbers
+      operationId: subtract
+      parameters:
+        - name: a
+          in: query
+          required: true
+          description: First number (minuend)
+          schema:
+            type: number
+        - name: b
+          in: query
+          required: true
+          description: Second number (subtrahend)
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /multiply:
+    get:
+      summary: Multiply two numbers
+      operationId: multiply
+      parameters:
+        - name: a
+          in: query
+          required: true
+          description: First number
+          schema:
+            type: number
+        - name: b
+          in: query
+          required: true
+          description: Second number
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /divide:
+    get:
+      summary: Divide two numbers
+      operationId: divide
+      parameters:
+        - name: a
+          in: query
+          required: true
+          description: Dividend
+          schema:
+            type: number
+        - name: b
+          in: query
+          required: true
+          description: Divisor (cannot be zero)
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: Invalid input or division by zero
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Result:
+      type: object
+      properties:
+        value:
+          type: number
+          description: The result of the calculation
+      required:
+        - value
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+      required:
+        - error

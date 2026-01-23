@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node main.js",
     "add": "node main.js add",
-    "subtract": "node main.js subtract"
+    "subtract": "node main.js subtract",
+    "test": "jest",
+    "test:mock": "jest --testPathPattern=mock",
+    "test:integration": "jest --testPathPattern='(adapter|manual)'",
+    "test:registration": "jest --testPathPattern=registration"
   },
   "keywords": ["calculator", "cli", "cvt"],
   "author": "",
@@ -16,5 +20,8 @@
     "@cvt/cvt-sdk": "file:../../cvt/sdks/node",
     "axios": "^1.6.0",
     "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

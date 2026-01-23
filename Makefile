@@ -3,7 +3,10 @@
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
 	consumer-2-add-validate consumer-2-multiply-validate consumer-2-divide-validate \
-	shell-producer shell-cvt test-producer
+	shell-producer shell-cvt test-producer \
+	test-consumer-1 test-consumer-1-mock test-consumer-1-integration test-consumer-1-registration \
+	test-consumer-2 test-consumer-2-mock test-consumer-2-integration test-consumer-2-registration \
+	test-unit test-integration demo-breaking-change
 
 # Default values for calculator operations
 x ?= 5
@@ -44,7 +47,22 @@ help:
 	@echo "  make test-all           - Run all consumer operations"
 	@echo "  make test-contracts     - Run all consumers with CVT validation"
 	@echo ""
-	@echo "Utilities:"
+	@echo "Consumer Contract Tests:"
+	@echo "  make test-consumer-1           - Run all Consumer-1 tests"
+	@echo "  make test-consumer-1-mock      - Run Consumer-1 mock tests (no producer needed)"
+	@echo "  make test-consumer-1-integration - Run Consumer-1 integration tests"
+	@echo "  make test-consumer-1-registration - Run Consumer-1 registration tests"
+	@echo "  make test-consumer-2           - Run all Consumer-2 tests"
+	@echo "  make test-consumer-2-mock      - Run Consumer-2 mock tests (no producer needed)"
+	@echo "  make test-consumer-2-integration - Run Consumer-2 integration tests"
+	@echo "  make test-consumer-2-registration - Run Consumer-2 registration tests"
+	@echo "  make test-unit          - Run all mock/unit tests"
+	@echo "  make test-integration   - Run all integration tests"
+	@echo ""
+	@echo "Breaking Change Demo:"
+	@echo "  make demo-breaking-change - Demo CVT breaking change detection"
+	@echo ""
+	@echo "Utilities:
 	@echo "  make shell-producer     - Shell into producer container"
 	@echo "  make shell-cvt          - Shell into CVT server container"
 
@@ -181,3 +199,85 @@ shell-producer:
 
 shell-cvt:
 	docker compose exec cvt-server sh
+
+# =============================================================================
+# Consumer Contract Tests
+# =============================================================================
+
+# Consumer-1 (Node.js) Tests
+test-consumer-1-mock:
+	@echo "Running Consumer-1 mock tests (no producer needed)..."
+	cd consumer-1 && npm test -- --testPathPattern=mock
+
+test-consumer-1-integration:
+	@echo "Running Consumer-1 integration tests (requires producer + CVT server)..."
+	cd consumer-1 && npm test -- --testPathPattern="(adapter|manual)"
+
+test-consumer-1-registration:
+	@echo "Running Consumer-1 registration tests..."
+	cd consumer-1 && npm test -- --testPathPattern=registration
+
+test-consumer-1:
+	@echo "Running all Consumer-1 tests..."
+	cd consumer-1 && npm test
+
+# Consumer-2 (Python) Tests
+test-consumer-2-mock:
+	@echo "Running Consumer-2 mock tests (no producer needed)..."
+	cd consumer-2 && uv run pytest tests/test_mock.py -v
+
+test-consumer-2-integration:
+	@echo "Running Consumer-2 integration tests (requires producer + CVT server)..."
+	cd consumer-2 && uv run pytest tests/test_adapter.py tests/test_manual.py -v
+
+test-consumer-2-registration:
+	@echo "Running Consumer-2 registration tests..."
+	cd consumer-2 && uv run pytest tests/test_registration.py -v
+
+test-consumer-2:
+	@echo "Running all Consumer-2 tests..."
+	cd consumer-2 && uv run pytest tests/ -v
+
+# Combined Test Targets
+test-unit:
+	@echo "Running all mock/unit tests (no services needed except CVT server)..."
+	@$(MAKE) -s test-consumer-1-mock
+	@$(MAKE) -s test-consumer-2-mock
+	@echo ""
+	@echo "All mock tests completed!"
+
+test-integration:
+	@echo "Running all integration tests (requires producer + CVT server)..."
+	@$(MAKE) -s test-consumer-1-integration
+	@$(MAKE) -s test-consumer-2-integration
+	@echo ""
+	@echo "All integration tests completed!"
+
+# =============================================================================
+# Breaking Change Demo
+# =============================================================================
+
+demo-breaking-change:
+	@echo "============================================"
+	@echo "Breaking Change Detection Demo"
+	@echo "============================================"
+	@echo ""
+	@echo "Step 1: Register consumers to 'demo' environment..."
+	@echo "Running consumer-1 registration tests..."
+	-cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration 2>/dev/null || true
+	@echo ""
+	@echo "Running consumer-2 registration tests..."
+	-cd consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>/dev/null || true
+	@echo ""
+	@echo "Step 2: Register v2.0.0 breaking schema..."
+	@echo "(This schema changes 'result' field to 'value')"
+	@echo ""
+	@echo "Step 3: Check if v2.0.0 can be deployed..."
+	@echo "cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo"
+	@echo ""
+	@echo "Expected result: UNSAFE - both consumers will break"
+	@echo "  - consumer-1 uses 'result' field in /add and /subtract"
+	@echo "  - consumer-2 uses 'result' field in /add, /multiply, and /divide"
+	@echo ""
+	@echo "The breaking change: 'result' field renamed to 'value' in v2.0.0"
+	@echo "============================================"

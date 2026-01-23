@@ -182,35 +182,93 @@ uv run python main.py add 5 3 --validate
 
 When validation fails, the consumer exits with error code 1 and prints the validation errors.
 
+## Consumer Contract Tests
+
+This demo includes comprehensive contract tests demonstrating all three CVT validation approaches.
+
+### Validation Approaches
+
+| Approach         | Description                                                         | Requires Producer |
+| ---------------- | ------------------------------------------------------------------- | ----------------- |
+| **Manual**       | Explicit `validator.validate()` calls with request/response objects | Yes               |
+| **HTTP Adapter** | Automatic validation via axios/requests interceptors                | Yes               |
+| **Mock Client**  | Schema-generated responses without real HTTP calls                  | No                |
+
+### Running Contract Tests
+
+```bash
+# Install test dependencies
+cd consumer-1 && npm install
+cd consumer-2 && uv sync --extra dev --extra cvt
+
+# Run mock tests (no producer needed, only CVT server)
+make test-unit
+
+# Run integration tests (requires producer + CVT server running)
+make test-integration
+
+# Run all tests for a specific consumer
+make test-consumer-1
+make test-consumer-2
+```
+
+### Test Files
+
+**Consumer-1 (Node.js/Jest):**
+
+- `tests/manual.test.js` - Manual validation approach
+- `tests/adapter.test.js` - HTTP Adapter approach
+- `tests/mock.test.js` - Mock Client approach
+- `tests/registration.test.js` - Consumer registration (auto + manual)
+
+**Consumer-2 (Python/pytest):**
+
+- `tests/test_manual.py` - Manual validation approach
+- `tests/test_adapter.py` - HTTP Adapter approach
+- `tests/test_mock.py` - Mock Client approach
+- `tests/test_registration.py` - Consumer registration (auto + manual)
+
+See `consumer-1/tests/README.md` and `consumer-2/tests/README.md` for detailed documentation.
+
 ## Breaking Change Demo
 
 This section demonstrates how CVT can detect breaking changes before they affect consumers.
 
-### Scenario: Removing an Endpoint
+### Scenario: Renaming a Response Field
 
-1. **Initial state**: All consumers work with v1.0.0 of the API.
+1. **Initial state**: All consumers work with v1.0.0 of the API, which returns `{"result": <number>}`.
 
-2. **Proposed change**: Remove the `/subtract` endpoint in v2.0.0.
+2. **Proposed change**: Rename `result` to `value` in v2.0.0 (see `producer/calculator-api-v2-breaking.yaml`).
 
-3. **Impact analysis**: CVT can detect that Consumer-1 (which uses `/subtract`) would break.
+3. **Impact analysis**: CVT detects that both consumers will break because they depend on the `result` field.
 
-### Steps to Reproduce
+### Run the Demo
+
+```bash
+# Start infrastructure
+make up
+
+# Run the breaking change demo
+make demo-breaking-change
+```
+
+### Manual Steps
 
 ```bash
 # 1. Start the infrastructure
 make up
 
-# 2. Run consumer-1 (uses add and subtract)
-make consumer-1-add-validate
-make consumer-1-subtract-validate
+# 2. Register consumers by running registration tests
+make test-consumer-1-registration
+make test-consumer-2-registration
 
-# 3. Now imagine we want to remove /subtract endpoint
-# CVT would detect this as a breaking change for Consumer-1
+# 3. Check which consumers would break with v2.0.0
+# The v2 schema (calculator-api-v2-breaking.yaml) renames 'result' to 'value'
+cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo
 
-# 4. Run consumer-2 (uses add, multiply, divide - NOT subtract)
-make consumer-2-add-validate
-make consumer-2-multiply-validate
-# Consumer-2 would be unaffected by removing /subtract
+# Expected: UNSAFE - both consumers will break
+#   - consumer-1 uses 'result' field in /add and /subtract
+#   - consumer-2 uses 'result' field in /add, /multiply, and /divide
 ```
 
 ## API Reference
@@ -219,10 +277,10 @@ make consumer-2-multiply-validate
 
 | Endpoint    | Method | Parameters         | Response                |
 | ----------- | ------ | ------------------ | ----------------------- |
-| `/add`      | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
-| `/subtract` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
-| `/multiply` | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
-| `/divide`   | GET    | `x`, `y` (numbers) | `{"result": <number>}`  |
+| `/add`      | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
+| `/subtract` | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
+| `/multiply` | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
+| `/divide`   | GET    | `a`, `b` (numbers) | `{"result": <number>}`  |
 | `/health`   | GET    | -                  | `{"status": "healthy"}` |
 
 ### Error Responses
@@ -282,6 +340,20 @@ make consumer-2-divide x=100 y=4     # 100 / 4 = 25
 - `make test-all` - Run all consumer operations
 - `make test-contracts` - Run all with CVT validation
 
+### Consumer Contract Tests
+
+- `make test-consumer-1` - Run all Consumer-1 tests
+- `make test-consumer-1-mock` - Run Consumer-1 mock tests (no producer needed)
+- `make test-consumer-1-integration` - Run Consumer-1 integration tests
+- `make test-consumer-1-registration` - Run Consumer-1 registration tests
+- `make test-consumer-2` - Run all Consumer-2 tests
+- `make test-consumer-2-mock` - Run Consumer-2 mock tests (no producer needed)
+- `make test-consumer-2-integration` - Run Consumer-2 integration tests
+- `make test-consumer-2-registration` - Run Consumer-2 registration tests
+- `make test-unit` - Run all mock/unit tests
+- `make test-integration` - Run all integration tests
+- `make demo-breaking-change` - Demo CVT breaking change detection
+
 ### Utilities
 
 - `make shell-producer` - Shell into producer container
@@ -297,16 +369,31 @@ cvt-demo/
 ├── producer/
 │   ├── main.go            # Go HTTP server
 │   ├── go.mod             # Go module
-│   ├── calculator-api.yaml # OpenAPI spec
+│   ├── calculator-api.yaml # OpenAPI spec (v1.0.0)
+│   ├── calculator-api-v2-breaking.yaml # Breaking schema (v2.0.0)
 │   └── Dockerfile
 ├── consumer-1/
 │   ├── main.js            # Node.js CLI
 │   ├── package.json
-│   └── Dockerfile
+│   ├── jest.config.js     # Jest configuration
+│   ├── Dockerfile
+│   └── tests/
+│       ├── README.md      # Test documentation
+│       ├── manual.test.js # Manual validation tests
+│       ├── adapter.test.js # HTTP Adapter tests
+│       ├── mock.test.js   # Mock Client tests
+│       └── registration.test.js # Consumer registration tests
 └── consumer-2/
     ├── main.py            # Python CLI
     ├── pyproject.toml
-    └── Dockerfile
+    ├── Dockerfile
+    └── tests/
+        ├── README.md      # Test documentation
+        ├── conftest.py    # pytest fixtures
+        ├── test_manual.py # Manual validation tests
+        ├── test_adapter.py # HTTP Adapter tests
+        ├── test_mock.py   # Mock Client tests
+        └── test_registration.py # Consumer registration tests
 ```
 
 ## Development
@@ -327,24 +414,34 @@ go run main.go
 cd consumer-1
 npm install
 node main.js add 5 3
+
+# Run tests
+npm test                    # All tests
+npm run test:mock           # Mock tests only
+npm run test:integration    # Integration tests
 ```
 
 **Consumer-2:**
 
 ```bash
 cd consumer-2
-uv sync
+uv sync --extra dev --extra cvt
 uv run python main.py add 5 3
+
+# Run tests
+uv run pytest tests/ -v              # All tests
+uv run pytest tests/test_mock.py -v  # Mock tests only
 ```
 
 ### Environment Variables
 
-| Variable          | Default                  | Description                    |
-| ----------------- | ------------------------ | ------------------------------ |
-| `PRODUCER_URL`    | `http://localhost:10001` | Producer API URL               |
-| `CVT_SERVER_ADDR` | `localhost:9550`         | CVT gRPC server address        |
-| `SCHEMA_PATH`     | `./calculator-api.yaml`  | Path to OpenAPI schema         |
-| `CVT_ENABLED`     | `true`                   | Enable/disable CVT on producer |
+| Variable          | Default                  | Description                           |
+| ----------------- | ------------------------ | ------------------------------------- |
+| `PRODUCER_URL`    | `http://localhost:10001` | Producer API URL                      |
+| `CVT_SERVER_ADDR` | `localhost:9550`         | CVT gRPC server address               |
+| `SCHEMA_PATH`     | `./calculator-api.yaml`  | Path to OpenAPI schema                |
+| `CVT_ENABLED`     | `true`                   | Enable/disable CVT on producer        |
+| `CVT_ENVIRONMENT` | `demo`                   | Environment for consumer registration |
 
 ## Troubleshooting
 
