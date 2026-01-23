@@ -302,7 +302,7 @@ cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo
 
 All endpoints return 400 Bad Request for:
 
-- Missing `x` or `y` parameters
+- Missing `a` or `b` parameters
 - Non-numeric parameter values
 - Division by zero (for `/divide`)
 
