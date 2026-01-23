@@ -224,21 +224,26 @@ make test-consumer-2
 
 ### Test Files
 
-**Consumer-1 (Node.js/Jest):**
+For detailed documentation on each consumer's tests, see:
 
-- `tests/manual.test.js` - Manual validation approach
-- `tests/adapter.test.js` - HTTP Adapter approach
-- `tests/mock.test.js` - Mock Client approach
-- `tests/registration.test.js` - Consumer registration (auto + manual)
+- [Consumer-1 Tests README](consumer-1/tests/README.md)
+- [Consumer-2 Tests README](consumer-2/tests/README.md)
 
-**Consumer-2 (Python/pytest):**
+#### Consumer-1 Tests (Node.js)
 
-- `tests/test_manual.py` - Manual validation approach
-- `tests/test_adapter.py` - HTTP Adapter approach
-- `tests/test_mock.py` - Mock Client approach
-- `tests/test_registration.py` - Consumer registration (auto + manual)
+- `manual.test.js` - Manual validation with explicit `validator.validate()` calls
+- `adapter.test.js` - HTTP Adapter with automatic axios interceptors
+- `mock.test.js` - Mock Client for unit testing (no producer needed)
+- `registration.test.js` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/add`, `/subtract`
 
-See `consumer-1/tests/README.md` and `consumer-2/tests/README.md` for detailed documentation.
+#### Consumer-2 Tests (Python)
+
+- `test_manual.py` - Manual validation with explicit validate calls
+- `test_adapter.py` - HTTP Adapter with `ContractValidatingSession`
+- `test_mock.py` - Mock Client for unit testing (no producer needed)
+- `test_registration.py` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/add`, `/multiply`, `/divide`
 
 ## Breaking Change Demo
 
