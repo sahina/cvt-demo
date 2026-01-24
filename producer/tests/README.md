@@ -4,12 +4,12 @@ This directory contains producer-side contract tests demonstrating three CVT val
 
 ## Test Files
 
-| File                   | Approach              | Requires Producer | Requires CVT | Recommended For                      |
-| ---------------------- | --------------------- | ----------------- | ------------ | ------------------------------------ |
-| `compliance_test.go`   | Schema Compliance     | No                | Yes          | Unit testing handler responses       |
-| `middleware_test.go`   | Middleware Modes      | No                | Yes          | Testing Strict/Warn/Shadow modes     |
-| `registry_test.go`     | Consumer Registry     | No                | Yes          | Can-i-deploy verification            |
-| `integration_test.go`  | HTTP Integration      | Yes               | Yes          | Full end-to-end testing              |
+| File                  | Approach          | Requires Producer | Requires CVT | Recommended For                  |
+| --------------------- | ----------------- | ----------------- | ------------ | -------------------------------- |
+| `compliance_test.go`  | Schema Compliance | No                | Yes          | Unit testing handler responses   |
+| `middleware_test.go`  | Middleware Modes  | No                | Yes          | Testing Strict/Warn/Shadow modes |
+| `registry_test.go`    | Consumer Registry | No                | Yes          | Can-i-deploy verification        |
+| `integration_test.go` | HTTP Integration  | Yes               | Yes          | Full end-to-end testing          |
 
 ## Prerequisites
 
@@ -96,6 +96,7 @@ sequenceDiagram
 ```
 
 **Key tests:**
+
 - `TestSchemaCompliance_AllOperations` - All calculator operations produce valid responses
 - `TestSchemaCompliance_NegativeTests` - CVT catches schema violations (wrong field names, types)
 - `TestSchemaCompliance_ErrorResponses` - Error responses (400) comply with error schema
@@ -131,13 +132,14 @@ flowchart TB
 
 **Mode comparison:**
 
-| Mode   | Invalid Request | Invalid Response | Use Case                    |
-|--------|-----------------|------------------|----------------------------|
-| Strict | Block (400)     | Block (500)      | Production enforcement      |
-| Warn   | Log & continue  | Log & continue   | Gradual rollout             |
-| Shadow | Metric only     | Metric only      | Canary testing              |
+| Mode   | Invalid Request | Invalid Response | Use Case               |
+| ------ | --------------- | ---------------- | ---------------------- |
+| Strict | Block (400)     | Block (500)      | Production enforcement |
+| Warn   | Log & continue  | Log & continue   | Gradual rollout        |
+| Shadow | Metric only     | Metric only      | Canary testing         |
 
 **Key tests:**
+
 - `TestMiddleware_StrictMode` - Invalid requests are rejected
 - `TestMiddleware_WarnMode` - Invalid requests are logged but continue
 - `TestMiddleware_ShadowMode` - Validation runs but never blocks
@@ -172,6 +174,7 @@ sequenceDiagram
 ```
 
 **Key tests:**
+
 - `TestRegistry_CanIDeploy_CurrentSchema` - v1.0.0 should be safe to deploy
 - `TestRegistry_CanIDeploy_BreakingSchema` - v2.0.0 (result→value) should be UNSAFE
 - `TestRegistry_ListConsumers` - List registered consumers
@@ -199,6 +202,7 @@ sequenceDiagram
 ```
 
 **Key tests:**
+
 - `TestIntegration_AllEndpoints` - All endpoints return correct results
 - `TestIntegration_WithCVTValidation` - Responses validated against schema
 - `TestIntegration_ErrorResponses` - Error responses validated
@@ -239,17 +243,19 @@ graph TB
 
 The v2.0.0 schema (`calculator-api-v2-breaking.yaml`) demonstrates breaking change detection:
 
-| Version | Response Schema | Status |
-|---------|----------------|--------|
-| v1.0.0  | `{"result": <number>}` | Safe |
-| v2.0.0  | `{"value": <number>}` | UNSAFE |
+| Version | Response Schema        | Status |
+| ------- | ---------------------- | ------ |
+| v1.0.0  | `{"result": <number>}` | Safe   |
+| v2.0.0  | `{"value": <number>}`  | UNSAFE |
 
 **Why v2.0.0 breaks consumers:**
+
 - Consumer-1 expects `result` field for `/add` and `/subtract`
 - Consumer-2 expects `result` field for `/add`, `/multiply`, and `/divide`
 - Renaming `result` to `value` breaks all consumers
 
 To see breaking change detection:
+
 ```bash
 # First, register consumers
 make test-consumer-1-registration
@@ -261,9 +267,9 @@ make test-producer-registry
 
 ## Environment Variables
 
-| Variable          | Default                | Description                  |
-|-------------------|------------------------|------------------------------|
-| `CVT_SERVER_ADDR` | `localhost:9550`       | CVT server gRPC address      |
-| `PRODUCER_URL`    | `http://localhost:10001` | Producer HTTP URL          |
-| `SCHEMA_PATH`     | `../calculator-api.yaml` | Path to OpenAPI schema     |
-| `CVT_ENVIRONMENT` | `demo`                 | Environment for registration |
+| Variable          | Default                  | Description                  |
+| ----------------- | ------------------------ | ---------------------------- |
+| `CVT_SERVER_ADDR` | `localhost:9550`         | CVT server gRPC address      |
+| `PRODUCER_URL`    | `http://localhost:10001` | Producer HTTP URL            |
+| `SCHEMA_PATH`     | `../calculator-api.yaml` | Path to OpenAPI schema       |
+| `CVT_ENVIRONMENT` | `demo`                   | Environment for registration |

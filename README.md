@@ -103,12 +103,16 @@ docker compose up -d
 ### 3. Test the Producer Directly
 
 ```bash
-# Test all endpoints
-make test-producer
+# Quick health check
+curl "http://localhost:10001/health"
+# Expected: {"status":"healthy"}
 
-# Or manually:
+# Test endpoints manually
 curl "http://localhost:10001/add?x=5&y=3"
 # Expected: {"result":8}
+
+# Run producer contract tests (see Producer Contract Tests section)
+make test-producer
 ```
 
 ### 4. Run Consumer-1 (Node.js)
@@ -245,6 +249,41 @@ For detailed documentation on each consumer's tests, see:
 - `test_registration.py` - Consumer registration (auto + manual)
 - **Endpoints tested:** `/add`, `/multiply`, `/divide`
 
+## Producer Contract Tests
+
+This demo includes comprehensive producer-side contract tests demonstrating three CVT validation approaches.
+
+### Producer Testing Approaches
+
+| Approach              | Description                                                  | Services Required |
+| --------------------- | ------------------------------------------------------------ | ----------------- |
+| **Schema Compliance** | ProducerTestKit validates handler responses against schema   | CVT server only   |
+| **Middleware Modes**  | Tests Strict/Warn/Shadow modes for runtime validation        | CVT server only   |
+| **Consumer Registry** | Can-i-deploy checks verify changes won't break consumers     | CVT server only   |
+| **HTTP Integration**  | Full HTTP tests against running producer with CVT validation | Producer + CVT    |
+
+### Running Producer Tests
+
+```bash
+# Run all producer tests
+make test-producer
+
+# Run specific test types
+make test-producer-compliance    # Schema compliance tests (unit)
+make test-producer-middleware    # Middleware mode tests (unit)
+make test-producer-registry      # Consumer registry / can-i-deploy tests
+make test-producer-integration   # HTTP integration tests
+```
+
+### Producer Test Files
+
+For detailed documentation, see [Producer Tests README](producer/tests/README.md).
+
+- `compliance_test.go` - Schema compliance with ProducerTestKit
+- `middleware_test.go` - Strict/Warn/Shadow mode testing
+- `registry_test.go` - Can-i-deploy verification
+- `integration_test.go` - Full HTTP integration tests
+
 ## Breaking Change Demo
 
 This section demonstrates how CVT can detect breaking changes before they affect consumers.
@@ -369,6 +408,14 @@ make consumer-2-divide x=100 y=4     # 100 / 4 = 25
 - `make test-integration` - Run all integration tests
 - `make demo-breaking-change` - Demo CVT breaking change detection
 
+### Producer Contract Tests
+
+- `make test-producer` - Run all producer tests
+- `make test-producer-compliance` - Schema compliance tests (unit)
+- `make test-producer-middleware` - Middleware mode tests (unit)
+- `make test-producer-registry` - Consumer registry / can-i-deploy tests
+- `make test-producer-integration` - HTTP integration tests
+
 ### Utilities
 
 - `make shell-producer` - Shell into producer container
@@ -382,11 +429,20 @@ cvt-demo/
 ├── Makefile               # Convenience commands
 ├── README.md              # This file
 ├── producer/
-│   ├── main.go            # Go HTTP server
+│   ├── main.go            # Go HTTP server with CVT middleware
 │   ├── go.mod             # Go module
 │   ├── calculator-api.yaml # OpenAPI spec (v1.0.0)
 │   ├── calculator-api-v2-breaking.yaml # Breaking schema (v2.0.0)
-│   └── Dockerfile
+│   ├── Dockerfile
+│   ├── handlers/
+│   │   └── calculator.go  # HTTP handlers with structured types
+│   └── tests/
+│       ├── README.md      # Producer test documentation
+│       ├── testutil_test.go # Shared test utilities
+│       ├── compliance_test.go # Schema compliance tests
+│       ├── middleware_test.go # Middleware mode tests
+│       ├── registry_test.go # Consumer registry tests
+│       └── integration_test.go # HTTP integration tests
 ├── consumer-1/
 │   ├── main.js            # Node.js CLI
 │   ├── package.json
@@ -421,6 +477,9 @@ cvt-demo/
 cd producer
 go mod tidy
 go run main.go
+
+# Run producer tests (requires CVT server running)
+go test ./tests/... -v
 ```
 
 **Consumer-1:**
