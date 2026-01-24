@@ -31,6 +31,13 @@ make test-integration # Integration tests (requires services running)
 make test-consumer-1      # All Consumer-1 tests
 make test-consumer-2      # All Consumer-2 tests
 make test-consumer-1-mock # Mock tests only
+
+# Producer contract tests
+make test-producer              # All producer tests
+make test-producer-compliance   # Schema compliance tests
+make test-producer-middleware   # Middleware mode tests
+make test-producer-registry     # Consumer registry tests
+make test-producer-integration  # HTTP integration tests
 ```
 
 ### Running Consumers
@@ -72,15 +79,27 @@ make demo-breaking-change
 
 3. **Mock Client** (`mock.test.js` / `test_mock.py`): Schema-generated responses without real HTTP calls - useful for unit testing in isolation (requires CVT server only)
 
+### Producer Testing Approaches
+
+1. **Schema Compliance** (`compliance_test.go`): ProducerTestKit validates handler responses against OpenAPI schema - unit testing without running server
+
+2. **Middleware Modes** (`middleware_test.go`): Tests Strict/Warn/Shadow modes - Strict blocks invalid, Warn logs, Shadow collects metrics only
+
+3. **Consumer Registry** (`registry_test.go`): Can-i-deploy checks verify schema changes won't break registered consumers
+
+4. **HTTP Integration** (`integration_test.go`): Full HTTP tests against running producer with CVT validation
+
 ### Key Files
 
 | Path | Purpose |
 |------|---------|
 | `producer/main.go` | Go Calculator API with CVT middleware |
+| `producer/handlers/calculator.go` | Extracted HTTP handlers with structured types |
 | `producer/calculator-api.yaml` | OpenAPI 3.0.3 contract spec |
+| `producer/tests/` | Producer contract test suites |
 | `consumer-1/main.js` | Node.js CLI with optional CVT validation |
 | `consumer-2/main.py` | Python CLI with optional CVT validation |
-| `consumer-*/tests/` | Test suites for each validation approach |
+| `consumer-*/tests/` | Consumer test suites for each validation approach |
 
 ### API Endpoints
 
