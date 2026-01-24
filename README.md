@@ -251,7 +251,7 @@ For detailed documentation on each consumer's tests, see:
 
 ## Producer Contract Tests
 
-This demo includes comprehensive producer-side contract tests demonstrating three CVT validation approaches.
+This demo includes comprehensive producer-side contract tests demonstrating four CVT validation approaches.
 
 ### Producer Testing Approaches
 
