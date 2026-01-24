@@ -3,10 +3,12 @@
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
 	consumer-2-add-validate consumer-2-multiply-validate consumer-2-divide-validate \
-	shell-producer shell-cvt test-producer \
+	shell-producer shell-cvt test-producer-http \
 	test-consumer-1 test-consumer-1-mock test-consumer-1-integration test-consumer-1-registration \
 	test-consumer-2 test-consumer-2-mock test-consumer-2-integration test-consumer-2-registration \
-	test-unit test-integration demo-breaking-change
+	test-unit test-integration demo-breaking-change \
+	test-producer test-producer-compliance test-producer-middleware \
+	test-producer-registry test-producer-integration
 
 # Default values for calculator operations
 x ?= 5
@@ -23,8 +25,13 @@ help:
 	@echo "  make logs               - View logs from all services"
 	@echo "  make clean              - Remove containers and images"
 	@echo ""
-	@echo "Producer Testing (direct HTTP):"
-	@echo "  make test-producer      - Test producer endpoints directly"
+	@echo "Producer Contract Tests:"
+	@echo "  make test-producer           - Run all producer contract tests"
+	@echo "  make test-producer-compliance - Schema compliance tests (no producer needed)"
+	@echo "  make test-producer-middleware - Middleware mode tests (no producer needed)"
+	@echo "  make test-producer-registry  - Consumer registry tests"
+	@echo "  make test-producer-integration - HTTP integration tests (requires producer)"
+	@echo "  make test-producer-http      - Quick HTTP endpoint test with curl"
 	@echo ""
 	@echo "Consumer-1 Operations (Node.js - add, subtract):"
 	@echo "  make consumer-1-add             - Run: add (default: 5 + 3)"
@@ -91,8 +98,8 @@ clean:
 # Producer Testing (direct HTTP)
 # =============================================================================
 
-test-producer:
-	@echo "Testing producer endpoints..."
+test-producer-http:
+	@echo "Testing producer endpoints with curl..."
 	@echo ""
 	@echo "GET /add?x=5&y=3"
 	@curl -s "http://localhost:10001/add?x=5&y=3" | jq .
@@ -108,6 +115,37 @@ test-producer:
 	@echo ""
 	@echo "GET /health"
 	@curl -s "http://localhost:10001/health" | jq .
+
+# =============================================================================
+# Producer Contract Tests
+# =============================================================================
+
+test-producer-compliance:
+	@echo "Running Producer schema compliance tests..."
+	cd producer && go test ./tests/... -run Compliance -v
+
+test-producer-middleware:
+	@echo "Running Producer middleware mode tests..."
+	cd producer && go test ./tests/... -run Middleware -v
+
+test-producer-registry:
+	@echo "Running Producer consumer registry tests..."
+	cd producer && go test ./tests/... -run Registry -v
+
+test-producer-integration:
+	@echo "Running Producer HTTP integration tests (requires producer running)..."
+	cd producer && go test ./tests/... -run Integration -v
+
+test-producer:
+	@echo "============================================"
+	@echo "Running All Producer Contract Tests"
+	@echo "============================================"
+	@echo ""
+	cd producer && go test ./tests/... -v
+	@echo ""
+	@echo "============================================"
+	@echo "All producer tests completed!"
+	@echo "============================================"
 
 # =============================================================================
 # Consumer-1 Operations (without validation)

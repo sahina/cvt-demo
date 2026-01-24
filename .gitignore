@@ -1,6 +1,7 @@
 # Binaries
 bin/
 build/
+producer/producer
 
 # Generated protobuf code (Go)
 gen/
