@@ -10,8 +10,8 @@
  *   --validate  Enable CVT contract validation (default: off)
  */
 
-const { program } = require('commander');
-const axios = require('axios');
+import { program } from 'commander';
+import { create } from 'axios';
 
 // Configuration
 const PRODUCER_URL = process.env.PRODUCER_URL || 'http://localhost:10001';
@@ -22,7 +22,7 @@ const SCHEMA_PATH = process.env.SCHEMA_PATH || './calculator-api.yaml';
  * Creates an axios instance, optionally wrapped with CVT validation.
  */
 async function createClient(validate) {
-  const client = axios.create({
+  const client = create({
     baseURL: PRODUCER_URL,
     timeout: 5000,
     headers: {
