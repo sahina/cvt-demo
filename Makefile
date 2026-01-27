@@ -1,12 +1,13 @@
 .PHONY: help build up down logs clean test-all test \
+	producer-up producer-down \
 	consumer-1-add consumer-1-subtract \
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
 	consumer-2-add-validate consumer-2-multiply-validate consumer-2-divide-validate \
 	shell-producer shell-cvt test-producer-http \
-	test-consumer-1 test-consumer-1-mock test-consumer-1-integration test-consumer-1-registration \
-	test-consumer-2 test-consumer-2-mock test-consumer-2-integration test-consumer-2-registration \
-	test-unit test-integration demo-breaking-change \
+	test-consumer-1 test-consumer-1-mock test-consumer-1-live test-consumer-1-registration \
+	test-consumer-2 test-consumer-2-mock test-consumer-2-live test-consumer-2-registration \
+	test-unit test-live demo-breaking-change \
 	test-producer test-producer-compliance test-producer-middleware \
 	test-producer-registry test-producer-integration
 
@@ -22,6 +23,8 @@ help:
 	@echo "  make build              - Build all Docker images"
 	@echo "  make up                 - Start CVT server and producer"
 	@echo "  make down               - Stop all services"
+	@echo "  make producer-up        - Start just the producer (CVT server must be running)"
+	@echo "  make producer-down      - Stop just the producer"
 	@echo "  make logs               - View logs from all services"
 	@echo "  make clean              - Remove containers and images"
 	@echo ""
@@ -57,15 +60,15 @@ help:
 	@echo "Consumer Contract Tests:"
 	@echo "  make test-consumer-1           - Run all Consumer-1 tests"
 	@echo "  make test-consumer-1-mock      - Run Consumer-1 mock tests (no producer needed)"
-	@echo "  make test-consumer-1-integration - Run Consumer-1 integration tests"
+	@echo "  make test-consumer-1-live      - Run Consumer-1 live tests (requires producer)"
 	@echo "  make test-consumer-1-registration - Run Consumer-1 registration tests"
 	@echo "  make test-consumer-2           - Run all Consumer-2 tests"
 	@echo "  make test-consumer-2-mock      - Run Consumer-2 mock tests (no producer needed)"
-	@echo "  make test-consumer-2-integration - Run Consumer-2 integration tests"
+	@echo "  make test-consumer-2-live      - Run Consumer-2 live tests (requires producer)"
 	@echo "  make test-consumer-2-registration - Run Consumer-2 registration tests"
-	@echo "  make test-unit          - Run all mock/unit tests"
-	@echo "  make test-integration   - Run all integration tests"
-	@echo "  make test               - Run all tests (unit + integration)"
+	@echo "  make test-unit          - Run all mock tests (CVT server only)"
+	@echo "  make test-live          - Run all live tests (requires producer)"
+	@echo "  make test               - Run all tests (mock + live)"
 	@echo ""
 	@echo "Breaking Change Demo:"
 	@echo "  make demo-breaking-change - Demo CVT breaking change detection"
@@ -86,6 +89,16 @@ up: build
 
 down:
 	docker compose down
+
+producer-up:
+	@echo "Starting producer service..."
+	docker compose up -d producer
+	@echo "Producer is running at http://localhost:10001"
+
+producer-down:
+	@echo "Stopping producer service..."
+	docker compose stop producer
+	@echo "Producer stopped"
 
 logs:
 	docker compose logs -f
@@ -248,8 +261,8 @@ test-consumer-1-mock:
 	@echo "Running Consumer-1 mock tests (no producer needed)..."
 	cd consumer-1 && npm test -- --testPathPattern=mock
 
-test-consumer-1-integration:
-	@echo "Running Consumer-1 integration tests (requires producer + CVT server)..."
+test-consumer-1-live:
+	@echo "Running Consumer-1 live tests (requires producer)..."
 	cd consumer-1 && npm test -- --testPathPattern="(adapter|manual)"
 
 test-consumer-1-registration:
@@ -265,8 +278,8 @@ test-consumer-2-mock:
 	@echo "Running Consumer-2 mock tests (no producer needed)..."
 	cd consumer-2 && uv run pytest tests/test_mock.py -v
 
-test-consumer-2-integration:
-	@echo "Running Consumer-2 integration tests (requires producer + CVT server)..."
+test-consumer-2-live:
+	@echo "Running Consumer-2 live tests (requires producer)..."
 	cd consumer-2 && uv run pytest tests/test_adapter.py tests/test_manual.py -v
 
 test-consumer-2-registration:
@@ -285,14 +298,14 @@ test-unit:
 	@echo ""
 	@echo "All mock tests completed!"
 
-test-integration:
-	@echo "Running all integration tests (requires producer + CVT server)..."
-	@$(MAKE) -s test-consumer-1-integration
-	@$(MAKE) -s test-consumer-2-integration
+test-live:
+	@echo "Running all live tests (requires producer)..."
+	@$(MAKE) -s test-consumer-1-live
+	@$(MAKE) -s test-consumer-2-live
 	@echo ""
-	@echo "All integration tests completed!"
+	@echo "All live tests completed!"
 
-# Run all tests (unit + integration)
+# Run all tests (mock + live)
 test:
 	@echo "============================================"
 	@echo "Running All Consumer Contract Tests"
@@ -300,7 +313,7 @@ test:
 	@echo ""
 	@$(MAKE) -s test-unit
 	@echo ""
-	@$(MAKE) -s test-integration
+	@$(MAKE) -s test-live
 	@echo ""
 	@echo "============================================"
 	@echo "All tests completed!"
