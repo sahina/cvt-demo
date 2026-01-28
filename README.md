@@ -325,6 +325,31 @@ cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo
 #   - consumer-2 uses 'result' field in /add, /multiply, and /divide
 ```
 
+## CI/CD Workflows
+
+This demo includes GitHub Actions workflows for running CVT contract tests. Both workflows are manually triggered (`workflow_dispatch`).
+
+### Available Workflows
+
+| Workflow | Description |
+| -------- | ----------- |
+| **Tests** | Runs all producer and consumer contract tests |
+| **Can-I-Deploy Demo** | Demonstrates CVT catching breaking changes |
+
+### Tests Workflow
+
+Runs contract tests in sequence: producer tests first, then consumer-1 and consumer-2 tests in parallel.
+
+```text
+producer-tests → (consumer-1-tests || consumer-2-tests)
+```
+
+Each job uses the CVT server as a GitHub Actions service container and generates expandable job summaries with test results.
+
+### Can-I-Deploy Demo Workflow
+
+Demonstrates CVT's breaking change detection by running `make demo-breaking-change`. Shows how CVT blocks unsafe schema changes before they reach production.
+
 ## API Reference
 
 ### Calculator API Endpoints
@@ -425,6 +450,9 @@ make consumer-2-divide x=100 y=4     # 100 / 4 = 25
 
 ```text
 cvt-demo/
+├── .github/workflows/
+│   ├── test.yml           # Contract tests workflow
+│   └── can-i-deploy.yml   # Breaking change demo workflow
 ├── docker-compose.yml     # Service orchestration
 ├── Makefile               # Convenience commands
 ├── README.md              # This file
