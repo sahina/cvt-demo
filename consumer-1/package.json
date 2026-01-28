@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cvt/cvt-sdk": "file:../../cvt/sdks/node",
+    "@cvt/sdk": "file:../../cvt/sdks/node",
     "axios": "^1.6.0",
     "commander": "^11.1.0"
   },

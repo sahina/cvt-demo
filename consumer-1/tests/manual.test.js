@@ -13,7 +13,7 @@
  * - Maximum control over what gets validated and when
  */
 
-const { ContractValidator } = require('@cvt/cvt-sdk');
+const { ContractValidator } = require('@cvt/sdk');
 const axios = require('axios');
 const path = require('path');
 
