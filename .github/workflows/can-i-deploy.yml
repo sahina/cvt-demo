@@ -1,0 +1,127 @@
+name: Can-I-Deploy Demo
+
+on:
+  workflow_dispatch:
+
+env:
+  CVT_SERVER_VERSION: 0.1.0-alpha.1
+
+jobs:
+  breaking-change-demo:
+    name: Breaking Change Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Checkout CVT SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cvt
+          path: cvt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: consumer-1/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Consumer-1 Dependencies
+        run: |
+          cd consumer-1
+          npm ci
+
+      - name: Install Consumer-2 Dependencies
+        run: |
+          cd consumer-2
+          uv sync --extra dev --extra cvt
+
+      - name: Wait for CVT Server
+        run: |
+          for i in {1..30}; do
+            if nc -z localhost 9550 2>/dev/null; then
+              echo "CVT server is ready"
+              exit 0
+            fi
+            echo "Waiting for CVT server... ($i/30)"
+            sleep 2
+          done
+          echo "CVT server failed to start"
+          exit 1
+
+      - name: Run Breaking Change Demo
+        id: demo
+        run: |
+          echo "============================================"
+          echo "Breaking Change Detection Demo"
+          echo "============================================"
+          echo ""
+          echo "This demo shows how CVT catches breaking changes"
+          echo "before they reach production."
+          echo ""
+          make demo-breaking-change 2>&1 | tee demo.log
+          # The demo is expected to show that deployment would be unsafe
+          # Exit with success since the demo completed (even if can-i-deploy fails)
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Can-I-Deploy Demo
+
+          This workflow demonstrates CVT's breaking change detection capability.
+
+          ### Scenario
+
+          1. **Consumers register** their API usage patterns with CVT
+          2. **Producer proposes v2.0.0** which renames `result` → `value` in responses
+          3. **CVT checks** if the change is safe to deploy
+          4. **Result**: CVT detects the breaking change and blocks deployment
+
+          ### Why This Matters
+
+          Without CVT, this breaking change could reach production and break:
+          - **consumer-1** (Node.js) - uses `result` in `/add` and `/subtract`
+          - **consumer-2** (Python) - uses `result` in `/add`, `/multiply`, and `/divide`
+
+          <details>
+          <summary>📋 Demo Output</summary>
+
+          ```
+          EOF
+          cat demo.log >> $GITHUB_STEP_SUMMARY || echo "Demo output not available" >> $GITHUB_STEP_SUMMARY
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ```
+
+          </details>
+          EOF

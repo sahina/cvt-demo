@@ -1,0 +1,405 @@
+name: Tests
+
+on:
+  workflow_dispatch:
+
+env:
+  CVT_SERVER_VERSION: 0.1.0-alpha.1
+
+jobs:
+  producer-tests:
+    name: Producer Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Checkout CVT SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cvt
+          path: cvt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
+      - name: Wait for CVT Server
+        run: |
+          for i in {1..30}; do
+            if nc -z localhost 9550 2>/dev/null; then
+              echo "CVT server is ready"
+              exit 0
+            fi
+            echo "Waiting for CVT server... ($i/30)"
+            sleep 2
+          done
+          echo "CVT server failed to start"
+          exit 1
+
+      - name: Run Compliance Tests
+        id: compliance
+        run: |
+          cd producer
+          go test ./tests/... -run Compliance -v 2>&1 | tee compliance.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat compliance.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Middleware Tests
+        id: middleware
+        run: |
+          cd producer
+          go test ./tests/... -run Middleware -v 2>&1 | tee middleware.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat middleware.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Registry Tests
+        id: registry
+        run: |
+          cd producer
+          go test ./tests/... -run Registry -v 2>&1 | tee registry.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat registry.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Start Producer
+        run: |
+          # Create symlink for Dockerfile COPY commands to work
+          ln -s . cvt-demo
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          echo "Waiting for producer to be healthy..."
+
+      - name: Wait for Producer
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:10001/health; then
+              echo ""
+              echo "Producer is ready"
+              exit 0
+            fi
+            echo "Waiting for producer... ($i/30)"
+            sleep 2
+          done
+          echo "Producer failed to start"
+          docker compose logs producer
+          exit 1
+
+      - name: Run Integration Tests
+        id: integration
+        run: |
+          cd producer
+          go test ./tests/... -run Integration -v 2>&1 | tee integration.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat integration.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Stop Producer
+        if: always()
+        run: docker compose down
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Producer Tests
+
+          <details>
+          <summary>📋 Compliance Tests</summary>
+
+          ```
+          ${{ steps.compliance.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>⚙️ Middleware Tests</summary>
+
+          ```
+          ${{ steps.middleware.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>📝 Registry Tests</summary>
+
+          ```
+          ${{ steps.registry.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>🔗 Integration Tests</summary>
+
+          ```
+          ${{ steps.integration.outputs.output }}
+          ```
+
+          </details>
+          EOF
+
+  consumer-1-tests:
+    name: Consumer-1 Tests (Node.js)
+    runs-on: ubuntu-latest
+    needs: producer-tests
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Checkout CVT SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cvt
+          path: cvt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: consumer-1/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd consumer-1
+          npm ci
+
+      - name: Wait for CVT Server
+        run: |
+          for i in {1..30}; do
+            if nc -z localhost 9550 2>/dev/null; then
+              echo "CVT server is ready"
+              exit 0
+            fi
+            echo "Waiting for CVT server... ($i/30)"
+            sleep 2
+          done
+          echo "CVT server failed to start"
+          exit 1
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          cd consumer-1
+          npm test -- --testPathPattern=mock 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Start Producer
+        run: |
+          # Create symlink for Dockerfile COPY commands to work
+          ln -s . cvt-demo
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          echo "Waiting for producer to be healthy..."
+
+      - name: Wait for Producer
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:10001/health; then
+              echo ""
+              echo "Producer is ready"
+              exit 0
+            fi
+            echo "Waiting for producer... ($i/30)"
+            sleep 2
+          done
+          echo "Producer failed to start"
+          docker compose logs producer
+          exit 1
+
+      - name: Run Live Tests
+        id: live
+        run: |
+          cd consumer-1
+          npm test -- --testPathPattern="(adapter|manual)" 2>&1 | tee live.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat live.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Stop Producer
+        if: always()
+        run: docker compose down
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-1 Tests (Node.js)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>🔌 Live Tests (Adapter + Manual)</summary>
+
+          ```
+          ${{ steps.live.outputs.output }}
+          ```
+
+          </details>
+          EOF
+
+  consumer-2-tests:
+    name: Consumer-2 Tests (Python)
+    runs-on: ubuntu-latest
+    needs: producer-tests
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Checkout CVT SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cvt
+          path: cvt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Dependencies
+        run: |
+          cd consumer-2
+          uv sync --extra dev --extra cvt
+
+      - name: Wait for CVT Server
+        run: |
+          for i in {1..30}; do
+            if nc -z localhost 9550 2>/dev/null; then
+              echo "CVT server is ready"
+              exit 0
+            fi
+            echo "Waiting for CVT server... ($i/30)"
+            sleep 2
+          done
+          echo "CVT server failed to start"
+          exit 1
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          cd consumer-2
+          uv run pytest tests/test_mock.py -v 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Start Producer
+        run: |
+          # Create symlink for Dockerfile COPY commands to work
+          ln -s . cvt-demo
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          echo "Waiting for producer to be healthy..."
+
+      - name: Wait for Producer
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:10001/health; then
+              echo ""
+              echo "Producer is ready"
+              exit 0
+            fi
+            echo "Waiting for producer... ($i/30)"
+            sleep 2
+          done
+          echo "Producer failed to start"
+          docker compose logs producer
+          exit 1
+
+      - name: Run Live Tests
+        id: live
+        run: |
+          cd consumer-2
+          uv run pytest tests/test_adapter.py tests/test_manual.py -v 2>&1 | tee live.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat live.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Stop Producer
+        if: always()
+        run: docker compose down
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-2 Tests (Python)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>🔌 Live Tests (Adapter + Manual)</summary>
+
+          ```
+          ${{ steps.live.outputs.output }}
+          ```
+
+          </details>
+          EOF
