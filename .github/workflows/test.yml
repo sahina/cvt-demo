@@ -43,6 +43,11 @@ jobs:
           # Create symlink so ../../cvt/sdks/go resolves correctly from producer
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
+
       - name: Wait for CVT Server
         run: |
           for i in {1..30}; do
