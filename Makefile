@@ -94,13 +94,13 @@ help:
 # Docker Operations
 # =============================================================================
 
-# Check that CVT SDK is available for Docker builds
+# Check that CVT SDKs are available for Docker builds
 check-cvt-sdk:
-	@if [ ! -d "$(CVT_ROOT)/sdks/go" ]; then \
+	@if [ ! -d "$(CVT_ROOT)/sdks/go" ] || [ ! -d "$(CVT_ROOT)/sdks/node" ] || [ ! -d "$(CVT_ROOT)/sdks/python" ]; then \
 		echo ""; \
-		echo "ERROR: CVT SDK not found at $(CVT_ROOT)/sdks/go"; \
+		echo "ERROR: CVT SDKs not found at $(CVT_ROOT)/sdks/{go,node,python}"; \
 		echo ""; \
-		echo "To build Docker images locally, clone the CVT SDK:"; \
+		echo "To build Docker images locally, clone the CVT repository:"; \
 		echo "  git clone https://github.com/sahina/cvt.git $(CVT_ROOT)"; \
 		echo ""; \
 		exit 1; \
