@@ -64,6 +64,7 @@ jobs:
       - name: Run Compliance Tests
         id: compliance
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Compliance -v 2>&1 | tee compliance.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -73,6 +74,7 @@ jobs:
       - name: Run Middleware Tests
         id: middleware
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Middleware -v 2>&1 | tee middleware.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -82,6 +84,7 @@ jobs:
       - name: Run Registry Tests
         id: registry
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Registry -v 2>&1 | tee registry.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -116,6 +119,7 @@ jobs:
       - name: Run Integration Tests
         id: integration
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Integration -v 2>&1 | tee integration.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -236,6 +240,7 @@ jobs:
       - name: Run Mock Tests
         id: mock
         run: |
+          set -o pipefail
           cd consumer-1
           npm test -- --testPathPattern=mock 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -270,6 +275,7 @@ jobs:
       - name: Run Live Tests
         id: live
         run: |
+          set -o pipefail
           cd consumer-1
           npm test -- --testPathPattern="(adapter|manual)" 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -371,6 +377,7 @@ jobs:
       - name: Run Mock Tests
         id: mock
         run: |
+          set -o pipefail
           cd consumer-2
           uv run pytest tests/test_mock.py -v 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -405,6 +412,7 @@ jobs:
       - name: Run Live Tests
         id: live
         run: |
+          set -o pipefail
           cd consumer-2
           uv run pytest tests/test_adapter.py tests/test_manual.py -v 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
