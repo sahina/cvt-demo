@@ -11,6 +11,9 @@
 	test-producer test-producer-compliance test-producer-middleware \
 	test-producer-registry test-producer-integration
 
+# CVT SDK location (relative to this repo)
+CVT_SDK_PATH ?= ../../cvt
+
 # Default values for calculator operations
 x ?= 5
 y ?= 3
@@ -82,23 +85,13 @@ help:
 # =============================================================================
 
 # Check that CVT SDK is available for Docker builds
-# Expected structure:
-#   workspaces/
-#     cvt/sdks/{go,node,python}  # CVT SDKs
-#     cvt-demo/<repo>/           # This repo
 check-cvt-sdk:
-	@if [ ! -d "../../cvt/sdks/go" ]; then \
+	@if [ ! -d "$(CVT_SDK_PATH)/sdks/go" ]; then \
 		echo ""; \
-		echo "ERROR: CVT SDK not found at ../../cvt/sdks/go"; \
+		echo "ERROR: CVT SDK not found at $(CVT_SDK_PATH)/sdks/go"; \
 		echo ""; \
 		echo "To build Docker images locally, clone the CVT SDK:"; \
-		echo "  cd ../.."; \
-		echo "  git clone https://github.com/sahina/cvt.git"; \
-		echo ""; \
-		echo "Expected directory structure:"; \
-		echo "  workspaces/"; \
-		echo "    cvt/sdks/{go,node,python}  <- CVT SDK here"; \
-		echo "    cvt-demo/<repo>/           <- This repo"; \
+		echo "  git clone https://github.com/sahina/cvt.git $(CVT_SDK_PATH)"; \
 		echo ""; \
 		exit 1; \
 	fi
@@ -107,14 +100,14 @@ check-cvt-sdk:
 # Dockerfiles expect: cvt/sdks/... and cvt-demo/...
 setup-symlink: check-cvt-sdk
 	@# Create cvt symlink in parent pointing to CVT SDK
-	@if [ ! -e ../cvt ]; then ln -sf ../cvt ../cvt 2>/dev/null || true; fi
+	@if [ ! -e ../cvt ]; then ln -sf $(CVT_SDK_PATH) ../cvt 2>/dev/null || true; fi
 	@# Create cvt-demo symlink in parent pointing to current directory (handles any repo name)
 	@DIRNAME=$$(basename $$(pwd)); \
 	if [ "$$DIRNAME" != "cvt-demo" ] && [ ! -e ../cvt-demo ]; then \
 		ln -sf "$$DIRNAME" ../cvt-demo 2>/dev/null || true; \
 	fi
 
-# Local build uses docker-compose.yml + docker-compose.override.yml (auto-merged)
+# Local Docker build (requires CVT SDK and symlinks)
 build: setup-symlink
 	docker compose build
 
