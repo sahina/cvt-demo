@@ -81,8 +81,11 @@ jobs:
       - name: Start Producer
         run: |
           # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          ln -s . cvt-demo 2>/dev/null || true
+          # Build and start only producer (cvt-server already running as GH Actions service)
+          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
+          docker compose run -d --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -111,7 +114,7 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: docker stop producer 2>/dev/null || true
 
       - name: Generate Job Summary
         if: always()
@@ -221,8 +224,11 @@ jobs:
       - name: Start Producer
         run: |
           # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          ln -s . cvt-demo 2>/dev/null || true
+          # Build and start only producer (cvt-server already running as GH Actions service)
+          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
+          docker compose run -d --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -251,7 +257,7 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: docker stop producer 2>/dev/null || true
 
       - name: Generate Job Summary
         if: always()
@@ -344,8 +350,11 @@ jobs:
       - name: Start Producer
         run: |
           # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose up -d producer
+          ln -s . cvt-demo 2>/dev/null || true
+          # Build and start only producer (cvt-server already running as GH Actions service)
+          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
+          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
+          docker compose run -d --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -374,7 +383,7 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: docker stop producer 2>/dev/null || true
 
       - name: Generate Job Summary
         if: always()
