@@ -11,7 +11,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:latest
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
@@ -38,6 +38,16 @@ jobs:
           cache: true
           cache-dependency-path: producer/go.sum
 
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink for Go module replace directives to resolve CVT SDK
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
+
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
+
       - name: Wait for CVT Server
         run: |
           for i in {1..30}; do
@@ -54,6 +64,7 @@ jobs:
       - name: Run Compliance Tests
         id: compliance
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Compliance -v 2>&1 | tee compliance.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -63,6 +74,7 @@ jobs:
       - name: Run Middleware Tests
         id: middleware
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Middleware -v 2>&1 | tee middleware.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -72,16 +84,28 @@ jobs:
       - name: Run Registry Tests
         id: registry
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Registry -v 2>&1 | tee registry.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat registry.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          docker compose up -d producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -95,12 +119,12 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
           exit 1
 
       - name: Run Integration Tests
         id: integration
         run: |
+          set -o pipefail
           cd producer
           go test ./tests/... -run Integration -v 2>&1 | tee integration.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -109,7 +133,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()
@@ -162,7 +189,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:latest
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
@@ -182,6 +209,13 @@ jobs:
           path: cvt
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -189,10 +223,26 @@ jobs:
           cache: 'npm'
           cache-dependency-path: consumer-1/package-lock.json
 
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink for local dependencies to resolve CVT SDK
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
+
+      - name: Build CVT Node SDK
+        run: |
+          cd cvt/sdks/node
+          npm ci
+          npm run build
+
       - name: Install Dependencies
         run: |
           cd consumer-1
           npm ci
+
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
 
       - name: Wait for CVT Server
         run: |
@@ -210,16 +260,28 @@ jobs:
       - name: Run Mock Tests
         id: mock
         run: |
+          set -o pipefail
           cd consumer-1
           npm test -- --testPathPattern=mock 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat mock.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          docker compose up -d producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -233,12 +295,12 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
           exit 1
 
       - name: Run Live Tests
         id: live
         run: |
+          set -o pipefail
           cd consumer-1
           npm test -- --testPathPattern="(adapter|manual)" 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -247,7 +309,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()
@@ -282,7 +347,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:latest
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
@@ -302,6 +367,13 @@ jobs:
           path: cvt
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -310,10 +382,20 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
 
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink for local dependencies to resolve CVT SDK
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
+
       - name: Install Dependencies
         run: |
           cd consumer-2
           uv sync --extra dev --extra cvt
+
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
 
       - name: Wait for CVT Server
         run: |
@@ -331,16 +413,28 @@ jobs:
       - name: Run Mock Tests
         id: mock
         run: |
+          set -o pipefail
           cd consumer-2
           uv run pytest tests/test_mock.py -v 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat mock.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          docker compose up -d producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -354,12 +448,12 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
           exit 1
 
       - name: Run Live Tests
         id: live
         run: |
+          set -o pipefail
           cd consumer-2
           uv run pytest tests/test_adapter.py tests/test_manual.py -v 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
@@ -368,7 +462,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker compose down
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()

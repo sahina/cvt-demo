@@ -1,9 +1,11 @@
+# Docker Compose for local development
+# Requires CVT repository (github.com/sahina/cvt) for Docker builds
+# Run: make setup-symlink (uses CVT_ROOT variable, default: ../../cvt)
+
 services:
-  # CVT Server - Contract validation service
+  # CVT Server - Contract validation service (pre-built image)
   cvt-server:
-    build:
-      context: ../cvt/server
-      dockerfile: Dockerfile
+    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.0-alpha.1}
     container_name: cvt-server
     ports:
       - "9550:9550"   # gRPC port
@@ -23,7 +25,7 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  # Producer - Go Calculator API
+  # Producer - Go Calculator API (build from local source)
   producer:
     build:
       context: ..
@@ -34,7 +36,7 @@ services:
     environment:
       - PORT=10001
       - CVT_SERVER_ADDR=cvt-server:9550
-      - SCHEMA_PATH=/app/calculator-api.json
+      - SCHEMA_PATH=/app/calculator-api.yaml
       - CVT_ENABLED=true
     depends_on:
       cvt-server:
