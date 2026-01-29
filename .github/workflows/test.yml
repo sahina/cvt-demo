@@ -194,6 +194,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: consumer-1/package-lock.json
 
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink so ../../cvt/sdks/node resolves correctly from consumer-1
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
+
       - name: Install Dependencies
         run: |
           cd consumer-1
@@ -319,6 +324,15 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink so ../../cvt/sdks/python resolves correctly from consumer-2
+          # consumer-2 is at $GITHUB_WORKSPACE/consumer-2
+          # pyproject.toml references ../../cvt/sdks/python
+          # which resolves to $GITHUB_WORKSPACE/../cvt/sdks/python
+          # We need to create cvt at $GITHUB_WORKSPACE/.. pointing to $GITHUB_WORKSPACE/cvt
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
       - name: Install Dependencies
         run: |
