@@ -114,11 +114,16 @@ setup-symlink: check-cvt-sdk
 		ln -sf "$$DIRNAME" ../cvt-demo 2>/dev/null || true; \
 	fi
 
+# Local build uses docker-compose.yml + docker-compose.override.yml (auto-merged)
 build: setup-symlink
 	docker compose build
 
 up: build
 	docker compose up -d
+
+# CI build uses docker-compose.yml + docker-compose.ci.yml
+build-ci:
+	docker compose -f docker-compose.yml -f docker-compose.ci.yml build
 
 down:
 	docker compose down

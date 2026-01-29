@@ -1,0 +1,58 @@
+# CI-specific overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.ci.yml build
+#
+# In CI, the repo is at $GITHUB_WORKSPACE and CVT SDK is checked out to $GITHUB_WORKSPACE/cvt
+# A symlink 'cvt-demo' pointing to '.' is created before building
+
+services:
+  # Producer - Go Calculator API (CI build paths)
+  producer:
+    build:
+      context: .
+      dockerfile: producer/Dockerfile
+    container_name: producer
+    ports:
+      - "10001:10001"
+    environment:
+      - PORT=10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.yaml
+      - CVT_ENABLED=true
+    depends_on:
+      cvt-server:
+        condition: service_healthy
+    networks:
+      - cvt-demo-network
+    restart: unless-stopped
+
+  # Consumer-1 - Node.js CLI (CI build paths)
+  consumer-1:
+    build:
+      context: .
+      dockerfile: consumer-1/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
+  # Consumer-2 - Python CLI (CI build paths)
+  consumer-2:
+    build:
+      context: .
+      dockerfile: consumer-2/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli

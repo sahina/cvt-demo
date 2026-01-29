@@ -95,10 +95,10 @@ jobs:
         run: |
           # Create symlink for Dockerfile COPY commands to work
           ln -s . cvt-demo 2>/dev/null || true
-          # Build and start only producer (cvt-server already running as GH Actions service)
-          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
-          docker compose run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
+          # Build and start producer using CI compose file
+          # cvt-server already running as GH Actions service
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -113,7 +113,7 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Integration Tests
@@ -251,10 +251,10 @@ jobs:
         run: |
           # Create symlink for Dockerfile COPY commands to work
           ln -s . cvt-demo 2>/dev/null || true
-          # Build and start only producer (cvt-server already running as GH Actions service)
-          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
-          docker compose run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
+          # Build and start producer using CI compose file
+          # cvt-server already running as GH Actions service
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -269,7 +269,7 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Live Tests
@@ -388,10 +388,10 @@ jobs:
         run: |
           # Create symlink for Dockerfile COPY commands to work
           ln -s . cvt-demo 2>/dev/null || true
-          # Build and start only producer (cvt-server already running as GH Actions service)
-          # Override CVT_SERVER_ADDR to point to localhost instead of docker network
-          BUILD_CONTEXT=. DOCKERFILE_PATH=producer/Dockerfile docker compose build producer
-          docker compose run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
+          # Build and start producer using CI compose file
+          # cvt-server already running as GH Actions service
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
           echo "Waiting for producer to be healthy..."
 
       - name: Wait for Producer
@@ -406,7 +406,7 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose logs producer
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Live Tests
