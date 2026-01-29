@@ -11,8 +11,18 @@
 	test-producer test-producer-compliance test-producer-middleware \
 	test-producer-registry test-producer-integration
 
+# =============================================================================
+# Path Configuration for Docker Builds
+# =============================================================================
 # CVT SDK location (relative to this repo)
 CVT_SDK_PATH ?= ../../cvt
+
+# Docker build context directory (parent of this repo)
+BUILD_CONTEXT ?= ..
+
+# Symlink names expected by Dockerfiles
+CVT_SYMLINK_NAME ?= cvt
+REPO_SYMLINK_NAME ?= cvt-demo
 
 # Default values for calculator operations
 x ?= 5
@@ -96,15 +106,17 @@ check-cvt-sdk:
 		exit 1; \
 	fi
 
-# Create symlinks in parent directory for Docker build context
-# Dockerfiles expect: cvt/sdks/... and cvt-demo/...
+# Create symlinks in build context for Docker builds
+# Dockerfiles expect: $(CVT_SYMLINK_NAME)/sdks/... and $(REPO_SYMLINK_NAME)/...
 setup-symlink: check-cvt-sdk
-	@# Create cvt symlink in parent pointing to CVT SDK
-	@if [ ! -e ../cvt ]; then ln -sf $(CVT_SDK_PATH) ../cvt 2>/dev/null || true; fi
-	@# Create cvt-demo symlink in parent pointing to current directory (handles any repo name)
+	@# Create CVT symlink in build context pointing to CVT SDK
+	@if [ ! -e $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) ]; then \
+		ln -sf $(CVT_SDK_PATH) $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) 2>/dev/null || true; \
+	fi
+	@# Create repo symlink in build context pointing to current directory
 	@DIRNAME=$$(basename $$(pwd)); \
-	if [ "$$DIRNAME" != "cvt-demo" ] && [ ! -e ../cvt-demo ]; then \
-		ln -sf "$$DIRNAME" ../cvt-demo 2>/dev/null || true; \
+	if [ "$$DIRNAME" != "$(REPO_SYMLINK_NAME)" ] && [ ! -e $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) ]; then \
+		ln -sf "$$DIRNAME" $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) 2>/dev/null || true; \
 	fi
 
 # Local Docker build (requires CVT SDK and symlinks)
