@@ -121,10 +121,6 @@ build: setup-symlink
 up: build
 	docker compose up -d
 
-# CI build uses docker-compose.yml + docker-compose.ci.yml
-build-ci:
-	docker compose -f docker-compose.yml -f docker-compose.ci.yml build
-
 down:
 	docker compose down
 

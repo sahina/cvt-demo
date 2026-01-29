@@ -91,15 +91,21 @@ jobs:
           cat registry.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo 2>/dev/null || true
-          # Build and start producer using CI compose file
-          # cvt-server already running as GH Actions service
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -113,7 +119,6 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Integration Tests
@@ -128,7 +133,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker stop producer 2>/dev/null || true
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()
@@ -201,6 +209,13 @@ jobs:
           path: cvt
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -210,7 +225,7 @@ jobs:
 
       - name: Setup CVT SDK path
         run: |
-          # Create symlink so ../../cvt/sdks/node resolves correctly from consumer-1
+          # Create symlink so ../../cvt/sdks/... resolves correctly
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
 
       - name: Build CVT Node SDK
@@ -223,6 +238,11 @@ jobs:
         run: |
           cd consumer-1
           npm ci
+
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
 
       - name: Wait for CVT Server
         run: |
@@ -247,15 +267,21 @@ jobs:
           cat mock.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo 2>/dev/null || true
-          # Build and start producer using CI compose file
-          # cvt-server already running as GH Actions service
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -269,7 +295,6 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Live Tests
@@ -284,7 +309,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker stop producer 2>/dev/null || true
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()
@@ -339,6 +367,13 @@ jobs:
           path: cvt
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.6'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -349,17 +384,18 @@ jobs:
 
       - name: Setup CVT SDK path
         run: |
-          # Create symlink so ../../cvt/sdks/python resolves correctly from consumer-2
-          # consumer-2 is at $GITHUB_WORKSPACE/consumer-2
-          # pyproject.toml references ../../cvt/sdks/python
-          # which resolves to $GITHUB_WORKSPACE/../cvt/sdks/python
-          # We need to create cvt at $GITHUB_WORKSPACE/.. pointing to $GITHUB_WORKSPACE/cvt
+          # Create symlink so ../../cvt/sdks/... resolves correctly
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
       - name: Install Dependencies
         run: |
           cd consumer-2
           uv sync --extra dev --extra cvt
+
+      - name: Update Go modules
+        run: |
+          cd producer
+          go mod tidy
 
       - name: Wait for CVT Server
         run: |
@@ -384,15 +420,21 @@ jobs:
           cat mock.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
       - name: Start Producer
         run: |
-          # Create symlink for Dockerfile COPY commands to work
-          ln -s . cvt-demo 2>/dev/null || true
-          # Build and start producer using CI compose file
-          # cvt-server already running as GH Actions service
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml build producer
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml run -d --no-deps --name producer -p 10001:10001 -e CVT_SERVER_ADDR=host.docker.internal:9550 producer
-          echo "Waiting for producer to be healthy..."
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -406,7 +448,6 @@ jobs:
             sleep 2
           done
           echo "Producer failed to start"
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs producer
           exit 1
 
       - name: Run Live Tests
@@ -421,7 +462,10 @@ jobs:
 
       - name: Stop Producer
         if: always()
-        run: docker stop producer 2>/dev/null || true
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
 
       - name: Generate Job Summary
         if: always()
