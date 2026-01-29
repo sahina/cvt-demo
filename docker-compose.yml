@@ -1,6 +1,10 @@
-# Base Docker Compose - shared configuration
-# Local dev: automatically merges with docker-compose.override.yml
-# CI: use docker-compose -f docker-compose.yml -f docker-compose.ci.yml
+# Docker Compose for local development
+# Requires CVT SDK cloned at ../../cvt (run: make setup-symlink)
+#
+# Expected directory structure:
+#   workspaces/
+#     cvt/sdks/{go,node,python}  <- CVT SDK
+#     cvt-demo/<repo>/           <- This repo
 
 services:
   # CVT Server - Contract validation service (pre-built image)
@@ -24,6 +28,58 @@ services:
       retries: 5
       start_period: 10s
     restart: unless-stopped
+
+  # Producer - Go Calculator API (build from local source)
+  producer:
+    build:
+      context: ..
+      dockerfile: cvt-demo/producer/Dockerfile
+    container_name: producer
+    ports:
+      - "10001:10001"
+    environment:
+      - PORT=10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.yaml
+      - CVT_ENABLED=true
+    depends_on:
+      cvt-server:
+        condition: service_healthy
+    networks:
+      - cvt-demo-network
+    restart: unless-stopped
+
+  # Consumer-1 - Node.js CLI (run as one-off container)
+  consumer-1:
+    build:
+      context: ..
+      dockerfile: cvt-demo/consumer-1/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
+  # Consumer-2 - Python CLI (run as one-off container)
+  consumer-2:
+    build:
+      context: ..
+      dockerfile: cvt-demo/consumer-2/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt-server:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
 
 networks:
   cvt-demo-network:
