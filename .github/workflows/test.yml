@@ -40,7 +40,7 @@ jobs:
 
       - name: Setup CVT SDK path
         run: |
-          # Create symlink so ../../cvt/sdks/go resolves correctly from producer
+          # Create symlink for Go module replace directives to resolve CVT SDK
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
       - name: Update Go modules
@@ -225,7 +225,7 @@ jobs:
 
       - name: Setup CVT SDK path
         run: |
-          # Create symlink so ../../cvt/sdks/... resolves correctly
+          # Create symlink for local dependencies to resolve CVT SDK
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
 
       - name: Build CVT Node SDK
@@ -384,7 +384,7 @@ jobs:
 
       - name: Setup CVT SDK path
         run: |
-          # Create symlink so ../../cvt/sdks/... resolves correctly
+          # Create symlink for local dependencies to resolve CVT SDK
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
       - name: Install Dependencies

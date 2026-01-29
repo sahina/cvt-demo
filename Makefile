@@ -86,7 +86,7 @@ help:
 	@echo "Breaking Change Demo:"
 	@echo "  make demo-breaking-change - Demo CVT breaking change detection"
 	@echo ""
-	@echo "Utilities:
+	@echo "Utilities:"
 	@echo "  make shell-producer     - Shell into producer container"
 	@echo "  make shell-cvt          - Shell into CVT server container"
 
@@ -109,7 +109,7 @@ check-cvt-sdk:
 # Create symlinks in build context for Docker builds
 # Dockerfiles expect: $(CVT_SYMLINK_NAME)/sdks/... and $(REPO_SYMLINK_NAME)/...
 setup-symlink: check-cvt-sdk
-	@# Create CVT symlink in build context pointing to CVT SDK
+	@# Create CVT symlink in build context pointing to CVT repository
 	@if [ ! -e $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) ]; then \
 		ln -sf $(CVT_ROOT) $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) 2>/dev/null || true; \
 	fi
@@ -119,7 +119,7 @@ setup-symlink: check-cvt-sdk
 		ln -sf "$$DIRNAME" $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) 2>/dev/null || true; \
 	fi
 
-# Local Docker build (requires CVT SDK and symlinks)
+# Local Docker build (requires CVT repository and symlinks)
 build: setup-symlink
 	docker compose build
 

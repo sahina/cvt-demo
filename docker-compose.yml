@@ -1,10 +1,6 @@
 # Docker Compose for local development
-# Requires CVT SDK cloned at ../../cvt (run: make setup-symlink)
-#
-# Expected directory structure:
-#   workspaces/
-#     cvt/sdks/{go,node,python}  <- CVT SDK
-#     cvt-demo/<repo>/           <- This repo
+# Requires CVT repository (github.com/sahina/cvt) for Docker builds
+# Run: make setup-symlink (uses CVT_ROOT variable, default: ../../cvt)
 
 services:
   # CVT Server - Contract validation service (pre-built image)
