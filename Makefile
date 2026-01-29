@@ -14,8 +14,8 @@
 # =============================================================================
 # Path Configuration for Docker Builds
 # =============================================================================
-# CVT SDK location (relative to this repo)
-CVT_SDK_PATH ?= ../../cvt
+# CVT repository root (relative to this repo)
+CVT_ROOT ?= ../../cvt
 
 # Docker build context directory (parent of this repo)
 BUILD_CONTEXT ?= ..
@@ -96,12 +96,12 @@ help:
 
 # Check that CVT SDK is available for Docker builds
 check-cvt-sdk:
-	@if [ ! -d "$(CVT_SDK_PATH)/sdks/go" ]; then \
+	@if [ ! -d "$(CVT_ROOT)/sdks/go" ]; then \
 		echo ""; \
-		echo "ERROR: CVT SDK not found at $(CVT_SDK_PATH)/sdks/go"; \
+		echo "ERROR: CVT SDK not found at $(CVT_ROOT)/sdks/go"; \
 		echo ""; \
 		echo "To build Docker images locally, clone the CVT SDK:"; \
-		echo "  git clone https://github.com/sahina/cvt.git $(CVT_SDK_PATH)"; \
+		echo "  git clone https://github.com/sahina/cvt.git $(CVT_ROOT)"; \
 		echo ""; \
 		exit 1; \
 	fi
@@ -111,7 +111,7 @@ check-cvt-sdk:
 setup-symlink: check-cvt-sdk
 	@# Create CVT symlink in build context pointing to CVT SDK
 	@if [ ! -e $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) ]; then \
-		ln -sf $(CVT_SDK_PATH) $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) 2>/dev/null || true; \
+		ln -sf $(CVT_ROOT) $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) 2>/dev/null || true; \
 	fi
 	@# Create repo symlink in build context pointing to current directory
 	@DIRNAME=$$(basename $$(pwd)); \
