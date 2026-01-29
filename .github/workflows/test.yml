@@ -38,6 +38,11 @@ jobs:
           cache: true
           cache-dependency-path: producer/go.sum
 
+      - name: Setup CVT SDK path
+        run: |
+          # Create symlink so ../../cvt/sdks/go resolves correctly from producer
+          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
+
       - name: Wait for CVT Server
         run: |
           for i in {1..30}; do
