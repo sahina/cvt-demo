@@ -22,8 +22,8 @@ services:
     restart: unless-stopped
 
   # Producer - Go Calculator API
-  # Use BUILD_CONTEXT and DOCKERFILE_PATH env vars in CI
-  # Default values work for local development with parent directory structure
+  # Local: uses parent dir as context (make build sets up symlinks)
+  # CI: sets BUILD_CONTEXT=. and creates cvt-demo symlink
   producer:
     build:
       context: ${BUILD_CONTEXT:-..}
@@ -46,8 +46,8 @@ services:
   # Consumer-1 - Node.js CLI (run as one-off container)
   consumer-1:
     build:
-      context: ..
-      dockerfile: cvt-demo/consumer-1/Dockerfile
+      context: ${BUILD_CONTEXT:-..}
+      dockerfile: ${CONSUMER1_DOCKERFILE:-cvt-demo/consumer-1/Dockerfile}
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
@@ -62,8 +62,8 @@ services:
   # Consumer-2 - Python CLI (run as one-off container)
   consumer-2:
     build:
-      context: ..
-      dockerfile: cvt-demo/consumer-2/Dockerfile
+      context: ${BUILD_CONTEXT:-..}
+      dockerfile: ${CONSUMER2_DOCKERFILE:-cvt-demo/consumer-2/Dockerfile}
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550

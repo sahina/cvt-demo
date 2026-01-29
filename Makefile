@@ -81,7 +81,40 @@ help:
 # Docker Operations
 # =============================================================================
 
-build:
+# Check that CVT SDK is available for Docker builds
+# Expected structure:
+#   workspaces/
+#     cvt/sdks/{go,node,python}  # CVT SDKs
+#     cvt-demo/<repo>/           # This repo
+check-cvt-sdk:
+	@if [ ! -d "../../cvt/sdks/go" ]; then \
+		echo ""; \
+		echo "ERROR: CVT SDK not found at ../../cvt/sdks/go"; \
+		echo ""; \
+		echo "To build Docker images locally, clone the CVT SDK:"; \
+		echo "  cd ../.."; \
+		echo "  git clone https://github.com/sahina/cvt.git"; \
+		echo ""; \
+		echo "Expected directory structure:"; \
+		echo "  workspaces/"; \
+		echo "    cvt/sdks/{go,node,python}  <- CVT SDK here"; \
+		echo "    cvt-demo/<repo>/           <- This repo"; \
+		echo ""; \
+		exit 1; \
+	fi
+
+# Create symlinks in parent directory for Docker build context
+# Dockerfiles expect: cvt/sdks/... and cvt-demo/...
+setup-symlink: check-cvt-sdk
+	@# Create cvt symlink in parent pointing to CVT SDK
+	@if [ ! -e ../cvt ]; then ln -sf ../cvt ../cvt 2>/dev/null || true; fi
+	@# Create cvt-demo symlink in parent pointing to current directory (handles any repo name)
+	@DIRNAME=$$(basename $$(pwd)); \
+	if [ "$$DIRNAME" != "cvt-demo" ] && [ ! -e ../cvt-demo ]; then \
+		ln -sf "$$DIRNAME" ../cvt-demo 2>/dev/null || true; \
+	fi
+
+build: setup-symlink
 	docker compose build
 
 up: build
