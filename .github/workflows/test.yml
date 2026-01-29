@@ -3,9 +3,6 @@ name: Tests
 on:
   workflow_dispatch:
 
-env:
-  CVT_SERVER_VERSION: 0.1.0-alpha.1
-
 jobs:
   producer-tests:
     name: Producer Tests
@@ -14,7 +11,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
@@ -167,7 +164,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
@@ -289,7 +286,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:${{ env.CVT_SERVER_VERSION }}
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
         ports:
           - 9550:9550
         options: >-
