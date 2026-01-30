@@ -113,7 +113,9 @@ jobs:
           echo ""
           echo "The v2.0.0 schema changes 'result' field to 'value'"
           echo ""
-          cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
+          # Convert YAML to JSON (CVT server expects JSON format)
+          yq -o=json producer/calculator-api-v2-breaking.yaml > /tmp/schema-v2.json
+          cvt register-schema calculator-api /tmp/schema-v2.json --version 2.0.0
 
       - name: Step 3 - Can I Deploy Check
         id: demo
