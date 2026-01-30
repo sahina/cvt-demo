@@ -113,9 +113,7 @@ jobs:
           echo ""
           echo "The v2.0.0 schema changes 'result' field to 'value'"
           echo ""
-          # Convert YAML to JSON (CVT server expects JSON format)
-          yq -o=json producer/calculator-api-v2-breaking.yaml > /tmp/schema-v2.json
-          cvt register-schema calculator-api /tmp/schema-v2.json --version 2.0.0
+          cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
 
       - name: Step 3 - Can I Deploy Check
         id: demo
@@ -137,6 +135,7 @@ jobs:
             echo ""
             echo "can-i-deploy correctly detected breaking changes and blocked deployment"
             echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
+            exit 1
           else
             echo ""
             echo "can-i-deploy indicated safe to deploy"
