@@ -1,7 +1,24 @@
 name: Can-I-Deploy Demo
 
+# Demo modes:
+#   - breaking (default): Register v2.0.0 schema with breaking changes -> workflow FAILS
+#   - compatible: Register v1.0.0 compatible schema -> workflow PASSES
+#
+# Run via CLI:
+#   gh workflow run "Can-I-Deploy Demo"                              # fails (breaking)
+#   gh workflow run "Can-I-Deploy Demo" -f demo_mode=compatible      # passes
+
 on:
   workflow_dispatch:
+    inputs:
+      demo_mode:
+        description: 'Demo mode'
+        required: true
+        default: 'breaking'
+        type: choice
+        options:
+          - breaking
+          - compatible
 
 jobs:
   breaking-change-demo:
@@ -58,9 +75,16 @@ jobs:
           # Create symlink for local dependencies to resolve CVT SDK
           ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
 
-      - name: Build CVT Node SDK
+      - name: Build CVT Tools
         run: |
-          cd cvt/sdks/node
+          # Build CVT CLI
+          mkdir -p $GITHUB_WORKSPACE/bin
+          cd cvt/cmd/cvt
+          go build -o $GITHUB_WORKSPACE/bin/cvt .
+          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+
+          # Build CVT Node SDK
+          cd ../../sdks/node
           npm ci
           npm run build
 
@@ -75,127 +99,32 @@ jobs:
           uv sync --extra dev --extra cvt
 
       - name: Wait for CVT Server
-        run: |
-          for i in {1..30}; do
-            if nc -z localhost 9550 2>/dev/null; then
-              echo "CVT server is ready"
-              exit 0
-            fi
-            echo "Waiting for CVT server... ($i/30)"
-            sleep 2
-          done
-          echo "CVT server failed to start"
-          exit 1
+        run: cvt wait --server localhost:9550 --timeout 60
 
-      - name: Step 1 - Register Consumers
-        id: register
+      - name: Register Consumers
         run: |
-          echo "============================================"
-          echo "Step 1: Registering consumers with CVT"
-          echo "============================================"
-          echo ""
-
-          # Run consumer registration tests to register their endpoint usage
-          echo "Registering consumer-1 (Node.js)..."
           cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1 || true
-          cd ..
+          cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
 
-          echo ""
-          echo "Registering consumer-2 (Python)..."
-          cd consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
-          cd ..
-
-          echo ""
-          echo "Consumers registered successfully!"
-
-      - name: Step 2 - Register Breaking Schema v2.0.0
-        id: register_v2
+      - name: Register Schema
         run: |
-          echo "============================================"
-          echo "Step 2: Registering breaking schema v2.0.0"
-          echo "============================================"
-          echo ""
-          echo "The v2.0.0 schema changes 'result' field to 'value'"
-          echo ""
+          if [ "${{ inputs.demo_mode }}" = "compatible" ]; then
+            echo "Registering compatible schema v1.0.0"
+            cvt register-schema calculator-api producer/calculator-api.yaml --version 1.0.0
+          else
+            echo "Registering breaking schema v2.0.0 (renames 'result' to 'value')"
+            cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
+          fi
 
-          cd consumer-2
-          uv run python -c "
-          from cvt_sdk import ContractValidator
-
-          validator = ContractValidator('localhost:9550')
-          validator.register_schema('calculator-api', '../producer/calculator-api-v2-breaking.yaml')
-          print('v2.0.0 breaking schema registered successfully!')
-          validator.close()
-          "
-
-      - name: Step 3 - Can I Deploy Check
+      - name: Can I Deploy Check
         id: demo
         run: |
-          set -o pipefail
-          echo "============================================"
-          echo "Step 3: Running can-i-deploy check"
-          echo "============================================"
-          echo ""
-          echo "Checking if calculator-api v2.0.0 can be deployed to 'demo' environment..."
-          echo ""
-
-          cd consumer-2
-          uv run python -c "
-          import json
-          from cvt_sdk import ContractValidator
-
-          validator = ContractValidator('localhost:9550')
-
-          # Check if v2.0.0 can be deployed
-          result = validator.can_i_deploy('calculator-api', '2.0.0', 'demo')
-
-          print('=' * 60)
-          print('CAN-I-DEPLOY RESULT')
-          print('=' * 60)
-          print(f'Schema: calculator-api')
-          print(f'Version: 2.0.0')
-          print(f'Environment: demo')
-          print(f'Safe to deploy: {result.get(\"safe_to_deploy\", \"unknown\")}')
-          print()
-
-          if not result.get('safe_to_deploy', True):
-              print('BREAKING CHANGES DETECTED!')
-              print()
-              if 'breaking_changes' in result:
-                  for change in result['breaking_changes']:
-                      print(f'  - Consumer: {change.get(\"consumer_id\", \"unknown\")}')
-                      print(f'    Affected endpoints: {change.get(\"affected_endpoints\", [])}')
-                      print()
-          else:
-              print('No breaking changes detected - safe to deploy')
-
-          print('=' * 60)
-          print()
-          print('Full result:')
-          print(json.dumps(result, indent=2, default=str))
-
-          validator.close()
-
-          # Exit with error if not safe to deploy (to demonstrate the check works)
-          if not result.get('safe_to_deploy', True):
-              print()
-              print('Deployment blocked due to breaking changes!')
-              exit(1)
-          " 2>&1 | tee ../demo.log
-
-          # Capture exit code but don't fail the workflow
-          EXIT_CODE=$?
-          cd ..
-
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo ""
-            echo "can-i-deploy correctly detected breaking changes and blocked deployment"
-            echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
-          else
-            echo ""
-            echo "can-i-deploy indicated safe to deploy"
-            echo "EXIT_CODE=0" >> $GITHUB_OUTPUT
-          fi
+          VERSION=${{ inputs.demo_mode == 'compatible' && '1.0.0' || '2.0.0' }}
+          set +e
+          cvt can-i-deploy --schema calculator-api --version $VERSION --env demo 2>&1 | tee demo.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
 
       - name: Generate Job Summary
         if: always()
