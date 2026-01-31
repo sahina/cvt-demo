@@ -1,7 +1,24 @@
 name: Can-I-Deploy Demo
 
+# Demo modes:
+#   - breaking (default): Register v2.0.0 schema with breaking changes -> workflow FAILS
+#   - compatible: Register v1.0.0 compatible schema -> workflow PASSES
+#
+# Run via CLI:
+#   gh workflow run "Can-I-Deploy Demo"                              # fails (breaking)
+#   gh workflow run "Can-I-Deploy Demo" -f demo_mode=compatible      # passes
+
 on:
   workflow_dispatch:
+    inputs:
+      demo_mode:
+        description: 'Demo mode'
+        required: true
+        default: 'breaking'
+        type: choice
+        options:
+          - breaking
+          - compatible
 
 jobs:
   breaking-change-demo:
@@ -88,14 +105,22 @@ jobs:
           cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1 || true
           cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
 
-      - name: Register Breaking Schema v2.0.0
-        run: cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
+      - name: Register Schema
+        run: |
+          if [ "${{ inputs.demo_mode }}" = "compatible" ]; then
+            echo "Registering compatible schema v1.0.0"
+            cvt register-schema calculator-api producer/calculator-api.yaml --version 1.0.0
+          else
+            echo "Registering breaking schema v2.0.0 (renames 'result' to 'value')"
+            cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
+          fi
 
       - name: Can I Deploy Check
         id: demo
         run: |
+          VERSION=${{ inputs.demo_mode == 'compatible' && '1.0.0' || '2.0.0' }}
           set +e
-          cvt can-i-deploy --schema calculator-api --version 2.0.0 --env demo 2>&1 | tee demo.log
+          cvt can-i-deploy --schema calculator-api --version $VERSION --env demo 2>&1 | tee demo.log
           EXIT_CODE=${PIPESTATUS[0]}
           echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
           exit $EXIT_CODE
