@@ -18,6 +18,13 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate Node.js cache path
+      if: inputs.build-node-sdk == 'true' && inputs.node-cache-dependency-path == ''
+      shell: bash
+      run: |
+        echo "::error::'node-cache-dependency-path' is required when 'build-node-sdk' is true."
+        exit 1
+
     - name: Checkout CVT SDK
       uses: actions/checkout@v4
       with:
@@ -28,7 +35,7 @@ runs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.24.6'
+        go-version: '1.24.x'
         cache: true
         cache-dependency-path: ${{ inputs.go-cache-dependency-path }}
 
@@ -36,7 +43,7 @@ runs:
       if: inputs.build-node-sdk == 'true'
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        node-version: '22.x'
         cache: 'npm'
         cache-dependency-path: ${{ inputs.node-cache-dependency-path }}
 
