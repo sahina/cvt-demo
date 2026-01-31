@@ -78,6 +78,7 @@ jobs:
       - name: Build CVT Tools
         run: |
           # Build CVT CLI
+          mkdir -p $GITHUB_WORKSPACE/bin
           cd cvt/cmd/cvt
           go build -o $GITHUB_WORKSPACE/bin/cvt .
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
