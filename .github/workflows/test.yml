@@ -28,6 +28,7 @@ jobs:
         uses: ./.github/actions/setup-cvt
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          go-cache-dependency-path: producer/go.sum
 
       - name: Update Go modules
         run: |
@@ -182,6 +183,7 @@ jobs:
         uses: ./.github/actions/setup-cvt
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          go-cache-dependency-path: producer/go.sum
           build-node-sdk: 'true'
           node-cache-dependency-path: consumer-1/package-lock.json
 
@@ -305,6 +307,7 @@ jobs:
         uses: ./.github/actions/setup-cvt
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          go-cache-dependency-path: producer/go.sum
 
       - name: Setup Python
         uses: actions/setup-python@v5

@@ -7,7 +7,7 @@ inputs:
     required: true
   go-cache-dependency-path:
     description: 'Path to go.sum for caching'
-    default: 'producer/go.sum'
+    required: true
   build-node-sdk:
     description: 'Whether to build the Node SDK (requires node-cache-dependency-path)'
     default: 'false'
