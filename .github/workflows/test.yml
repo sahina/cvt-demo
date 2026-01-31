@@ -24,24 +24,10 @@ jobs:
       - name: Checkout cvt-demo
         uses: actions/checkout@v4
 
-      - name: Checkout CVT SDK
-        uses: actions/checkout@v4
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
         with:
-          repository: ${{ github.repository_owner }}/cvt
-          path: cvt
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.6'
-          cache: true
-          cache-dependency-path: producer/go.sum
-
-      - name: Setup CVT SDK path
-        run: |
-          # Create symlink for Go module replace directives to resolve CVT SDK
-          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Go modules
         run: |
@@ -49,17 +35,7 @@ jobs:
           go mod tidy
 
       - name: Wait for CVT Server
-        run: |
-          for i in {1..30}; do
-            if nc -z localhost 9550 2>/dev/null; then
-              echo "CVT server is ready"
-              exit 0
-            fi
-            echo "Waiting for CVT server... ($i/30)"
-            sleep 2
-          done
-          echo "CVT server failed to start"
-          exit 1
+        run: cvt wait --server localhost:9550 --timeout 60
 
       - name: Run Compliance Tests
         id: compliance
@@ -202,37 +178,12 @@ jobs:
       - name: Checkout cvt-demo
         uses: actions/checkout@v4
 
-      - name: Checkout CVT SDK
-        uses: actions/checkout@v4
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
         with:
-          repository: ${{ github.repository_owner }}/cvt
-          path: cvt
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.6'
-          cache: true
-          cache-dependency-path: producer/go.sum
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: consumer-1/package-lock.json
-
-      - name: Setup CVT SDK path
-        run: |
-          # Create symlink for local dependencies to resolve CVT SDK
-          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
-
-      - name: Build CVT Node SDK
-        run: |
-          cd cvt/sdks/node
-          npm ci
-          npm run build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          build-node-sdk: 'true'
+          node-cache-dependency-path: consumer-1/package-lock.json
 
       - name: Install Dependencies
         run: |
@@ -245,17 +196,7 @@ jobs:
           go mod tidy
 
       - name: Wait for CVT Server
-        run: |
-          for i in {1..30}; do
-            if nc -z localhost 9550 2>/dev/null; then
-              echo "CVT server is ready"
-              exit 0
-            fi
-            echo "Waiting for CVT server... ($i/30)"
-            sleep 2
-          done
-          echo "CVT server failed to start"
-          exit 1
+        run: cvt wait --server localhost:9550 --timeout 60
 
       - name: Run Mock Tests
         id: mock
@@ -360,19 +301,10 @@ jobs:
       - name: Checkout cvt-demo
         uses: actions/checkout@v4
 
-      - name: Checkout CVT SDK
-        uses: actions/checkout@v4
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
         with:
-          repository: ${{ github.repository_owner }}/cvt
-          path: cvt
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.6'
-          cache: true
-          cache-dependency-path: producer/go.sum
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -381,11 +313,6 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
-
-      - name: Setup CVT SDK path
-        run: |
-          # Create symlink for local dependencies to resolve CVT SDK
-          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt
 
       - name: Install Dependencies
         run: |
@@ -398,17 +325,7 @@ jobs:
           go mod tidy
 
       - name: Wait for CVT Server
-        run: |
-          for i in {1..30}; do
-            if nc -z localhost 9550 2>/dev/null; then
-              echo "CVT server is ready"
-              exit 0
-            fi
-            echo "Waiting for CVT server... ($i/30)"
-            sleep 2
-          done
-          echo "CVT server failed to start"
-          exit 1
+        run: cvt wait --server localhost:9550 --timeout 60
 
       - name: Run Mock Tests
         id: mock
