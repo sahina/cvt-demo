@@ -101,29 +101,89 @@ jobs:
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
 
-      - name: Register Consumers
+      - name: Step 1 - Register Consumers
         run: |
-          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1 || true
-          cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
+          echo "============================================"
+          echo "Step 1: Registering consumers with CVT"
+          echo "============================================"
+          echo ""
+          echo "Consumers declare which API endpoints and fields they use."
+          echo "This information is stored in CVT for breaking change detection."
+          echo ""
 
-      - name: Register Schema
+          echo "Registering consumer-1 (Node.js)..."
+          echo "  - Uses: /add, /subtract"
+          echo "  - Fields: result"
+          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1 || true
+          cd ..
+
+          echo ""
+          echo "Registering consumer-2 (Python)..."
+          echo "  - Uses: /add, /multiply, /divide"
+          echo "  - Fields: result"
+          cd consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
+          cd ..
+
+          echo ""
+          echo "Consumers registered successfully!"
+
+      - name: Step 2 - Register Schema
         run: |
+          echo "============================================"
+          echo "Step 2: Registering producer schema with CVT"
+          echo "============================================"
+          echo ""
+
           if [ "${{ inputs.demo_mode }}" = "compatible" ]; then
-            echo "Registering compatible schema v1.0.0"
+            echo "Mode: compatible"
+            echo "Registering schema v1.0.0 (no breaking changes)"
+            echo "This schema uses the 'result' field that consumers expect."
+            echo ""
             cvt register-schema calculator-api producer/calculator-api.yaml --version 1.0.0
           else
-            echo "Registering breaking schema v2.0.0 (renames 'result' to 'value')"
+            echo "Mode: breaking"
+            echo "Registering schema v2.0.0 with BREAKING CHANGE"
+            echo "This schema renames 'result' field to 'value'"
+            echo "Consumers still expect 'result' - this will break them!"
+            echo ""
             cvt register-schema calculator-api producer/calculator-api-v2-breaking.yaml --version 2.0.0
           fi
 
-      - name: Can I Deploy Check
+          echo ""
+          echo "Schema registered successfully!"
+
+      - name: Step 3 - Can I Deploy Check
         id: demo
         run: |
+          echo "============================================"
+          echo "Step 3: Running can-i-deploy check"
+          echo "============================================"
+          echo ""
+
           VERSION=${{ inputs.demo_mode == 'compatible' && '1.0.0' || '2.0.0' }}
+          echo "Checking if calculator-api v$VERSION can be deployed to 'demo' environment..."
+          echo ""
+          echo "CVT will compare the schema against registered consumer expectations."
+          echo ""
+
           set +e
           cvt can-i-deploy --schema calculator-api --version $VERSION --env demo 2>&1 | tee demo.log
           EXIT_CODE=${PIPESTATUS[0]}
           echo "EXIT_CODE=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+          echo ""
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "============================================"
+            echo "RESULT: Deployment BLOCKED"
+            echo "============================================"
+            echo "CVT detected breaking changes that would affect consumers."
+          else
+            echo "============================================"
+            echo "RESULT: Safe to deploy"
+            echo "============================================"
+            echo "No breaking changes detected."
+          fi
+
           exit $EXIT_CODE
 
       - name: Generate Job Summary
