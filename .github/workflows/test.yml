@@ -1,5 +1,25 @@
 name: Tests
 
+# CVT Contract Testing Workflow
+#
+# This workflow runs all contract tests for the CVT demo application:
+#
+# Producer Tests (Go):
+#   - Compliance: Validates handler responses against OpenAPI schema
+#   - Middleware: Tests Strict/Warn/Shadow validation modes
+#   - Registry: Tests consumer registration and can-i-deploy checks
+#   - Integration: Full HTTP tests against running producer with CVT
+#
+# Consumer Tests:
+#   - Mock Tests: Schema-generated responses without real HTTP calls (CVT server only)
+#   - Live Tests: Real HTTP calls to producer with contract validation
+#
+# All tests run with continue-on-error to provide full coverage report.
+# Results are displayed as a checklist in the GitHub Actions job summary.
+#
+# Run via CLI:
+#   gh workflow run "Tests"
+
 on:
   workflow_dispatch:
 
