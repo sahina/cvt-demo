@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  producer-tests:
-    name: Producer Tests
+  all-tests:
+    name: All Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -21,162 +21,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout cvt-demo
-        uses: actions/checkout@v4
-
-      - name: Setup CVT
-        uses: ./.github/actions/setup-cvt
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          go-cache-dependency-path: producer/go.sum
-
-      - name: Update Go modules
-        run: |
-          cd producer
-          go mod tidy
-
-      - name: Wait for CVT Server
-        run: cvt wait --server localhost:9550 --timeout 60
-
-      - name: Run Compliance Tests
-        id: compliance
-        run: |
-          set -o pipefail
-          cd producer
-          go test ./tests/... -run Compliance -v 2>&1 | tee compliance.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat compliance.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Run Middleware Tests
-        id: middleware
-        run: |
-          set -o pipefail
-          cd producer
-          go test ./tests/... -run Middleware -v 2>&1 | tee middleware.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat middleware.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Run Registry Tests
-        id: registry
-        run: |
-          set -o pipefail
-          cd producer
-          go test ./tests/... -run Registry -v 2>&1 | tee registry.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat registry.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Build Producer
-        run: |
-          cd producer
-          go build -o calculator-api .
-
-      - name: Start Producer
-        run: |
-          cd producer
-          PORT=10001 \
-          CVT_SERVER_ADDR=localhost:9550 \
-          SCHEMA_PATH=./calculator-api.yaml \
-          CVT_ENABLED=true \
-          ./calculator-api &
-          echo $! > /tmp/producer.pid
-          echo "Producer started with PID $(cat /tmp/producer.pid)"
-
-      - name: Wait for Producer
-        run: |
-          for i in {1..30}; do
-            if curl -sf http://localhost:10001/health; then
-              echo ""
-              echo "Producer is ready"
-              exit 0
-            fi
-            echo "Waiting for producer... ($i/30)"
-            sleep 2
-          done
-          echo "Producer failed to start"
-          exit 1
-
-      - name: Run Integration Tests
-        id: integration
-        run: |
-          set -o pipefail
-          cd producer
-          go test ./tests/... -run Integration -v 2>&1 | tee integration.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat integration.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Stop Producer
-        if: always()
-        run: |
-          if [ -f /tmp/producer.pid ]; then
-            kill $(cat /tmp/producer.pid) 2>/dev/null || true
-          fi
-
-      - name: Generate Job Summary
-        if: always()
-        run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-          ## Producer Tests
-
-          <details>
-          <summary>📋 Compliance Tests</summary>
-
-          ```
-          ${{ steps.compliance.outputs.output }}
-          ```
-
-          </details>
-
-          <details>
-          <summary>⚙️ Middleware Tests</summary>
-
-          ```
-          ${{ steps.middleware.outputs.output }}
-          ```
-
-          </details>
-
-          <details>
-          <summary>📝 Registry Tests</summary>
-
-          ```
-          ${{ steps.registry.outputs.output }}
-          ```
-
-          </details>
-
-          <details>
-          <summary>🔗 Integration Tests</summary>
-
-          ```
-          ${{ steps.integration.outputs.output }}
-          ```
-
-          </details>
-          EOF
-
-  consumer-1-tests:
-    name: Consumer-1 Tests (Node.js)
-    runs-on: ubuntu-latest
-    needs: producer-tests
-    timeout-minutes: 30
-
-    services:
-      cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
-        ports:
-          - 9550:9550
-        options: >-
-          --health-cmd "/bin/grpc_health_probe -addr=:9550"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout cvt-demo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup CVT
@@ -187,128 +32,6 @@ jobs:
           build-node-sdk: 'true'
           node-cache-dependency-path: consumer-1/package-lock.json
 
-      - name: Install Dependencies
-        run: |
-          cd consumer-1
-          npm ci
-
-      - name: Update Go modules
-        run: |
-          cd producer
-          go mod tidy
-
-      - name: Wait for CVT Server
-        run: cvt wait --server localhost:9550 --timeout 60
-
-      - name: Run Mock Tests
-        id: mock
-        run: |
-          set -o pipefail
-          cd consumer-1
-          npm test -- --testPathPattern=mock 2>&1 | tee mock.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat mock.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Build Producer
-        run: |
-          cd producer
-          go build -o calculator-api .
-
-      - name: Start Producer
-        run: |
-          cd producer
-          PORT=10001 \
-          CVT_SERVER_ADDR=localhost:9550 \
-          SCHEMA_PATH=./calculator-api.yaml \
-          CVT_ENABLED=true \
-          ./calculator-api &
-          echo $! > /tmp/producer.pid
-          echo "Producer started with PID $(cat /tmp/producer.pid)"
-
-      - name: Wait for Producer
-        run: |
-          for i in {1..30}; do
-            if curl -sf http://localhost:10001/health; then
-              echo ""
-              echo "Producer is ready"
-              exit 0
-            fi
-            echo "Waiting for producer... ($i/30)"
-            sleep 2
-          done
-          echo "Producer failed to start"
-          exit 1
-
-      - name: Run Live Tests
-        id: live
-        run: |
-          set -o pipefail
-          cd consumer-1
-          npm test -- --testPathPattern="(adapter|manual)" 2>&1 | tee live.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat live.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Stop Producer
-        if: always()
-        run: |
-          if [ -f /tmp/producer.pid ]; then
-            kill $(cat /tmp/producer.pid) 2>/dev/null || true
-          fi
-
-      - name: Generate Job Summary
-        if: always()
-        run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-          ## Consumer-1 Tests (Node.js)
-
-          <details>
-          <summary>🧪 Mock Tests (CVT Server Only)</summary>
-
-          ```
-          ${{ steps.mock.outputs.output }}
-          ```
-
-          </details>
-
-          <details>
-          <summary>🔌 Live Tests (Adapter + Manual)</summary>
-
-          ```
-          ${{ steps.live.outputs.output }}
-          ```
-
-          </details>
-          EOF
-
-  consumer-2-tests:
-    name: Consumer-2 Tests (Python)
-    runs-on: ubuntu-latest
-    needs: producer-tests
-    timeout-minutes: 30
-
-    services:
-      cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
-        ports:
-          - 9550:9550
-        options: >-
-          --health-cmd "/bin/grpc_health_probe -addr=:9550"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout cvt-demo
-        uses: actions/checkout@v4
-
-      - name: Setup CVT
-        uses: ./.github/actions/setup-cvt
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          go-cache-dependency-path: producer/go.sum
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -317,7 +40,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
 
-      - name: Install Dependencies
+      - name: Install Consumer-1 Dependencies
+        run: |
+          cd consumer-1
+          npm ci
+
+      - name: Install Consumer-2 Dependencies
         run: |
           cd consumer-2
           uv sync --extra dev --extra cvt
@@ -330,31 +58,29 @@ jobs:
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
 
-      - name: Run Mock Tests
-        id: mock
-        run: |
-          set -o pipefail
-          cd consumer-2
-          uv run pytest tests/test_mock.py -v 2>&1 | tee mock.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat mock.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      # Producer Tests (before starting producer)
+      - name: Run Compliance Tests
+        id: compliance
+        continue-on-error: true
+        run: cd producer && go test ./tests/... -run Compliance -v
 
-      - name: Build Producer
+      - name: Run Middleware Tests
+        id: middleware
+        continue-on-error: true
+        run: cd producer && go test ./tests/... -run Middleware -v
+
+      - name: Run Registry Tests
+        id: registry
+        continue-on-error: true
+        run: cd producer && go test ./tests/... -run Registry -v
+
+      # Start Producer
+      - name: Build and Start Producer
         run: |
           cd producer
           go build -o calculator-api .
-
-      - name: Start Producer
-        run: |
-          cd producer
-          PORT=10001 \
-          CVT_SERVER_ADDR=localhost:9550 \
-          SCHEMA_PATH=./calculator-api.yaml \
-          CVT_ENABLED=true \
-          ./calculator-api &
+          PORT=10001 CVT_SERVER_ADDR=localhost:9550 SCHEMA_PATH=./calculator-api.yaml CVT_ENABLED=true ./calculator-api &
           echo $! > /tmp/producer.pid
-          echo "Producer started with PID $(cat /tmp/producer.pid)"
 
       - name: Wait for Producer
         run: |
@@ -370,44 +96,77 @@ jobs:
           echo "Producer failed to start"
           exit 1
 
-      - name: Run Live Tests
-        id: live
-        run: |
-          set -o pipefail
-          cd consumer-2
-          uv run pytest tests/test_adapter.py tests/test_manual.py -v 2>&1 | tee live.log
-          echo "output<<EOF" >> $GITHUB_OUTPUT
-          cat live.log >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      # Producer Integration Tests
+      - name: Run Integration Tests
+        id: integration
+        continue-on-error: true
+        run: cd producer && go test ./tests/... -run Integration -v
 
+      # Consumer-1 Tests
+      - name: Consumer-1 Mock Tests
+        id: consumer1_mock
+        continue-on-error: true
+        run: cd consumer-1 && npm test -- --testPathPattern=mock
+
+      - name: Consumer-1 Live Tests
+        id: consumer1_live
+        continue-on-error: true
+        run: cd consumer-1 && npm test -- --testPathPattern="(adapter|manual)"
+
+      # Consumer-2 Tests
+      - name: Consumer-2 Mock Tests
+        id: consumer2_mock
+        continue-on-error: true
+        run: cd consumer-2 && uv run pytest tests/test_mock.py -v
+
+      - name: Consumer-2 Live Tests
+        id: consumer2_live
+        continue-on-error: true
+        run: cd consumer-2 && uv run pytest tests/test_adapter.py tests/test_manual.py -v
+
+      # Cleanup
       - name: Stop Producer
+        id: cleanup
         if: always()
         run: |
           if [ -f /tmp/producer.pid ]; then
-            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+            kill $(cat /tmp/producer.pid) 2>/dev/null && echo "Producer stopped" || echo "Already stopped"
           fi
 
+      # Summary
       - name: Generate Job Summary
         if: always()
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-          ## Consumer-2 Tests (Python)
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Producer Tests" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.compliance.outcome }}" = "success" ] && echo "- ✅ Compliance" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Compliance" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.middleware.outcome }}" = "success" ] && echo "- ✅ Middleware" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Middleware" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.registry.outcome }}" = "success" ] && echo "- ✅ Registry" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Registry" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.integration.outcome }}" = "success" ] && echo "- ✅ Integration" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Integration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Consumer-1 (Node.js)" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.consumer1_mock.outcome }}" = "success" ] && echo "- ✅ Mock" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Mock" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.consumer1_live.outcome }}" = "success" ] && echo "- ✅ Live" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Live" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Consumer-2 (Python)" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.consumer2_mock.outcome }}" = "success" ] && echo "- ✅ Mock" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Mock" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.consumer2_live.outcome }}" = "success" ] && echo "- ✅ Live" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Live" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Cleanup" >> $GITHUB_STEP_SUMMARY
+          [ "${{ steps.cleanup.outcome }}" = "success" ] && echo "- ✅ Producer stopped" >> $GITHUB_STEP_SUMMARY || echo "- ❌ Cleanup failed" >> $GITHUB_STEP_SUMMARY
 
-          <details>
-          <summary>🧪 Mock Tests (CVT Server Only)</summary>
-
-          ```
-          ${{ steps.mock.outputs.output }}
-          ```
-
-          </details>
-
-          <details>
-          <summary>🔌 Live Tests (Adapter + Manual)</summary>
-
-          ```
-          ${{ steps.live.outputs.output }}
-          ```
-
-          </details>
-          EOF
+      - name: Check for failures
+        if: always()
+        run: |
+          if [ "${{ steps.compliance.outcome }}" != "success" ] || \
+             [ "${{ steps.middleware.outcome }}" != "success" ] || \
+             [ "${{ steps.registry.outcome }}" != "success" ] || \
+             [ "${{ steps.integration.outcome }}" != "success" ] || \
+             [ "${{ steps.consumer1_mock.outcome }}" != "success" ] || \
+             [ "${{ steps.consumer1_live.outcome }}" != "success" ] || \
+             [ "${{ steps.consumer2_mock.outcome }}" != "success" ] || \
+             [ "${{ steps.consumer2_live.outcome }}" != "success" ]; then
+            echo "One or more tests failed"
+            exit 1
+          fi
