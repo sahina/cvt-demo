@@ -15,7 +15,7 @@
 # Path Configuration for Docker Builds
 # =============================================================================
 # CVT repository root (relative to this repo)
-CVT_ROOT ?= ../../cvt
+CVT_ROOT ?= ../cvt
 
 # Docker build context directory (parent of this repo)
 BUILD_CONTEXT ?= ..

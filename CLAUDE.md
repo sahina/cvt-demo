@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Contract Validator Toolkit (CVT) demonstration application showcasing runtime contract validation between API producers and consumers. It demonstrates three validation approaches: Manual, HTTP Adapter, and Mock Client.
 
 **Architecture:**
+
 - **CVT Server**: gRPC-based contract validation service (port 9550)
 - **Producer**: Go-based Calculator API with CVT middleware (port 10001)
 - **Consumers**: Node.js (consumer-1) and Python (consumer-2) CLI tools
@@ -14,6 +15,7 @@ This is a Contract Validator Toolkit (CVT) demonstration application showcasing 
 ## Common Commands
 
 ### Docker Operations
+
 ```bash
 make up              # Start CVT server and producer
 make down            # Stop all services
@@ -22,6 +24,7 @@ make build           # Build all Docker images
 ```
 
 ### Testing
+
 ```bash
 make test            # Run all tests (unit + integration)
 make test-unit       # Unit/mock tests only (no producer required)
@@ -41,6 +44,7 @@ make test-producer-integration  # HTTP integration tests
 ```
 
 ### Running Consumers
+
 ```bash
 # Consumer-1 (Node.js) - add, subtract
 make consumer-1-add x=5 y=3
@@ -52,6 +56,7 @@ make consumer-2-divide-validate x=10 y=2
 ```
 
 ### Direct Test Execution
+
 ```bash
 # Consumer-1 (Node.js + Jest)
 cd consumer-1 && npm test
@@ -65,6 +70,7 @@ uv run pytest tests/test_mock.py -v
 ```
 
 ### Demo Breaking Change Detection
+
 ```bash
 make demo-breaking-change
 ```
@@ -91,34 +97,36 @@ make demo-breaking-change
 
 ### Key Files
 
-| Path | Purpose |
-|------|---------|
-| `producer/main.go` | Go Calculator API with CVT middleware |
-| `producer/handlers/calculator.go` | Extracted HTTP handlers with structured types |
-| `producer/calculator-api.yaml` | OpenAPI 3.0.3 contract spec |
-| `producer/tests/` | Producer contract test suites |
-| `consumer-1/main.js` | Node.js CLI with optional CVT validation |
-| `consumer-2/main.py` | Python CLI with optional CVT validation |
-| `consumer-*/tests/` | Consumer test suites for each validation approach |
+| Path                              | Purpose                                           |
+| --------------------------------- | ------------------------------------------------- |
+| `producer/main.go`                | Go Calculator API with CVT middleware             |
+| `producer/handlers/calculator.go` | Extracted HTTP handlers with structured types     |
+| `producer/calculator-api.yaml`    | OpenAPI 3.0.3 contract spec                       |
+| `producer/tests/`                 | Producer contract test suites                     |
+| `consumer-1/main.js`              | Node.js CLI with optional CVT validation          |
+| `consumer-2/main.py`              | Python CLI with optional CVT validation           |
+| `consumer-*/tests/`               | Consumer test suites for each validation approach |
 
 ### API Endpoints
 
 All endpoints accept query params `x` and `y` (numbers) and return `{"result": <number>}`:
+
 - `GET /add`, `/subtract`, `/multiply`, `/divide`
 - `GET /health` returns `{"status": "healthy"}`
 
 ## Environment Variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `PRODUCER_URL` | `http://localhost:10001` | Producer API URL |
-| `CVT_SERVER_ADDR` | `localhost:9550` | CVT gRPC server |
-| `CVT_ENABLED` | `true` | Enable/disable CVT on producer |
-| `CVT_ENVIRONMENT` | `demo` | Environment for consumer registration |
+| Variable          | Default                  | Purpose                               |
+| ----------------- | ------------------------ | ------------------------------------- |
+| `PRODUCER_URL`    | `http://localhost:10001` | Producer API URL                      |
+| `CVT_SERVER_ADDR` | `localhost:9550`         | CVT gRPC server                       |
+| `CVT_ENABLED`     | `true`                   | Enable/disable CVT on producer        |
+| `CVT_ENVIRONMENT` | `demo`                   | Environment for consumer registration |
 
 ## Tool Versions
 
 Managed via `.tool-versions` (asdf):
+
 - Go 1.24.6
 - Python 3.12.4
 - Node 22.14.0
