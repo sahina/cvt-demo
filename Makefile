@@ -1,5 +1,5 @@
 .PHONY: help build up down logs clean test-all test \
-	producer-up producer-down \
+	producer-deps producer-up producer-down \
 	consumer-1-add consumer-1-subtract \
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
@@ -119,8 +119,12 @@ setup-symlink: check-cvt-sdk
 		ln -sf "$$DIRNAME" $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) 2>/dev/null || true; \
 	fi
 
+# Ensure producer Go dependencies are up to date
+producer-deps:
+	cd producer && go mod tidy
+
 # Local Docker build (requires CVT repository and symlinks)
-build: setup-symlink
+build: setup-symlink producer-deps
 	docker compose build
 
 up: build

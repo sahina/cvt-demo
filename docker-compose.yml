@@ -5,11 +5,11 @@
 services:
   # CVT Server - Contract validation service (pre-built image)
   cvt-server:
-    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.0-alpha.1}
+    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.0-alpha.2}
     container_name: cvt-server
     ports:
-      - "9550:9550"   # gRPC port
-      - "9551:9551"   # Metrics port
+      - "9550:9550" # gRPC port
+      - "9551:9551" # Metrics port
     environment:
       - LOG_LEVEL=info
       - CVT_PORT=9550
