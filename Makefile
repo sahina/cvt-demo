@@ -1,4 +1,4 @@
-.PHONY: help build up down logs clean test-all test \
+.PHONY: help build up down logs clean test-all test test-contracts \
 	producer-up producer-down \
 	consumer-1-add consumer-1-subtract \
 	consumer-1-add-validate consumer-1-subtract-validate \
@@ -79,7 +79,7 @@ help:
 	@echo "  make test-consumer-2-mock      - Run Consumer-2 mock tests (no producer needed)"
 	@echo "  make test-consumer-2-live      - Run Consumer-2 live tests (requires producer)"
 	@echo "  make test-consumer-2-registration - Run Consumer-2 registration tests"
-	@echo "  make test-unit          - Run all mock tests (CVT server only)"
+	@echo "  make test-unit          - Run all mock tests (no producer needed)"
 	@echo "  make test-live          - Run all live tests (requires producer)"
 	@echo "  make test               - Run all tests (mock + live)"
 	@echo ""
