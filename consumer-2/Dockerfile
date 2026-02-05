@@ -21,12 +21,11 @@ COPY cvt-demo/producer/calculator-api.json ./calculator-api.json
 
 # Update the SDK path for Docker context and install dependencies
 RUN sed -i 's|../../cvt/sdks/python|/cvt/sdks/python|g' pyproject.toml && \
-  uv pip install --system -e . && \
-  uv pip install --system -e /cvt/sdks/python
+  uv sync --extra cvt
 
 # Set environment variables
 ENV PRODUCER_URL=http://producer:10001
 ENV CVT_SERVER_ADDR=cvt-server:9550
 ENV SCHEMA_PATH=/app/calculator-api.json
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["uv", "run", "python", "main.py"]
