@@ -32,7 +32,7 @@ async function createClient(validate) {
 
   if (validate) {
     try {
-      const { ContractValidator } = require('@cvt/sdk');
+      const { ContractValidator } = require('@sahina/cvt-sdk');
 
       const validator = new ContractValidator(CVT_SERVER_ADDR);
       await validator.registerSchema('calculator-api', SCHEMA_PATH);

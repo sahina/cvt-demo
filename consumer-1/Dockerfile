@@ -1,27 +1,21 @@
-# Consumer-1 Dockerfile
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy CVT SDK source (dist is excluded by .dockerignore, so we build it)
-COPY cvt/sdks/node /cvt/sdks/node
+# Copy package files and .npmrc for GitHub packages registry
+COPY consumer-1/.npmrc consumer-1/package.json consumer-1/package-lock.json ./
 
-# Copy CVT proto files (required for gRPC communication)
-COPY cvt/api/protos /cvt/api/protos
-
-# Build the CVT SDK (TypeScript -> JavaScript)
-RUN cd /cvt/sdks/node && npm install && npm run build
+# Install dependencies (auth token injected at build time for GitHub packages)
+ARG GITHUB_TOKEN
+RUN echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc && \
+    npm ci && \
+    sed -i '/authToken/d' .npmrc
 
 # Copy consumer source
-COPY cvt-demo/consumer-1/package.json ./
-COPY cvt-demo/consumer-1/main.js ./
+COPY consumer-1/main.js ./
 
 # Copy the OpenAPI schema for validation (JSON format required by CVT server)
-COPY cvt-demo/producer/calculator-api.json ./calculator-api.json
-
-# Update the SDK path for Docker context and install dependencies
-RUN sed -i 's|file:../../cvt/sdks/node|file:/cvt/sdks/node|g' package.json && \
-    npm install
+COPY producer/calculator-api.json ./calculator-api.json
 
 # Set environment variables
 ENV PRODUCER_URL=http://producer:10001

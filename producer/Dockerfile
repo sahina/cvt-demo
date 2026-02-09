@@ -6,18 +6,15 @@ RUN apk add --no-cache git
 
 WORKDIR /build
 
-# Copy CVT SDK first
-COPY cvt/sdks/go /cvt/sdks/go
+# Copy go module files and download dependencies
+COPY producer/go.mod producer/go.sum ./
+RUN go mod download
 
-# Copy the cvt-demo directory
-COPY cvt-demo /build/cvt-demo
+# Copy source code
+COPY producer/ .
 
-WORKDIR /build/cvt-demo/producer
-
-# Update replace directive, download dependencies, and build
-RUN sed -i 's|../../cvt/sdks/go|/cvt/sdks/go|g' go.mod && \
-    go mod tidy && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /calculator-api .
+# Build binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /calculator-api .
 
 # Runtime stage
 FROM alpine:3.19
@@ -26,7 +23,7 @@ WORKDIR /app
 
 # Copy binary and schema
 COPY --from=builder /calculator-api .
-COPY --from=builder /build/cvt-demo/producer/calculator-api.yaml .
+COPY --from=builder /build/calculator-api.yaml .
 
 # Set default environment variables
 ENV PORT=10001

@@ -13,8 +13,8 @@
  * - Minimal code changes to add validation to existing test suites
  */
 
-const { ContractValidator } = require('@cvt/sdk');
-const { createAxiosAdapter } = require('@cvt/sdk/adapters');
+const { ContractValidator } = require('@sahina/cvt-sdk');
+const { createAxiosAdapter } = require('@sahina/cvt-sdk/adapters');
 const axios = require('axios');
 const path = require('path');
 

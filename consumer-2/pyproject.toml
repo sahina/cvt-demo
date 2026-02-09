@@ -20,4 +20,4 @@ dev = [
 consumer-2 = "main:main"
 
 [tool.uv.sources]
-cvt-sdk = { path = "../../cvt/sdks/python", editable = true }
+cvt-sdk = { url = "https://github.com/sahina/cvt/releases/download/v0.1.1/cvt_sdk-0.1.1-py3-none-any.whl" }

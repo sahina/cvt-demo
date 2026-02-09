@@ -2,7 +2,7 @@ module github.com/sahina/cvt-demo/producer
 
 go 1.25.0
 
-require github.com/sahina/cvt/sdks/go v0.0.0
+require github.com/sahina/cvt/sdks/go v0.1.1
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -37,5 +37,3 @@ require (
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
-
-replace github.com/sahina/cvt/sdks/go => ../../cvt/sdks/go

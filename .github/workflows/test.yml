@@ -11,7 +11,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.1
         ports:
           - 9550:9550
         options: >-
@@ -26,14 +26,13 @@ jobs:
 
       - name: Setup CVT
         uses: ./.github/actions/setup-cvt
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          go-cache-dependency-path: producer/go.sum
 
-      - name: Update Go modules
-        run: |
-          cd producer
-          go mod tidy
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: producer/go.sum
 
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
@@ -166,7 +165,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.1
         ports:
           - 9550:9550
         options: >-
@@ -181,21 +180,28 @@ jobs:
 
       - name: Setup CVT
         uses: ./.github/actions/setup-cvt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          go-cache-dependency-path: producer/go.sum
-          build-node-sdk: 'true'
-          node-cache-dependency-path: consumer-1/package-lock.json
+          node-version: '22.x'
+          registry-url: 'https://npm.pkg.github.com'
+          cache: 'npm'
+          cache-dependency-path: consumer-1/package-lock.json
 
       - name: Install Dependencies
         run: |
           cd consumer-1
           npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Go modules
-        run: |
-          cd producer
-          go mod tidy
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: producer/go.sum
 
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
@@ -290,7 +296,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.1
         ports:
           - 9550:9550
         options: >-
@@ -305,9 +311,13 @@ jobs:
 
       - name: Setup CVT
         uses: ./.github/actions/setup-cvt
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          go-cache-dependency-path: producer/go.sum
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: producer/go.sum
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -321,11 +331,6 @@ jobs:
         run: |
           cd consumer-2
           uv sync --extra dev --extra cvt
-
-      - name: Update Go modules
-        run: |
-          cd producer
-          go mod tidy
 
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
