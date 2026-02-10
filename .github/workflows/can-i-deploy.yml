@@ -56,8 +56,6 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
-          cache: 'npm'
-          cache-dependency-path: consumer-1/package-lock.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -70,7 +68,7 @@ jobs:
       - name: Install Consumer-1 Dependencies
         run: |
           cd consumer-1
-          npm ci
+          npm install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -84,8 +82,8 @@ jobs:
 
       - name: Register Consumers
         run: |
-          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1 || true
-          cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1 || true
+          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1
+          cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1
 
       - name: Register Schema
         run: |
