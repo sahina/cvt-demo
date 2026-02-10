@@ -82,7 +82,7 @@ jobs:
 
       - name: Register Consumers
         run: |
-          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration --silent 2>&1
+          cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPatterns=registration --silent 2>&1
           cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1
 
       - name: Register Schema

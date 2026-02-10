@@ -9,9 +9,9 @@
     "add": "node main.js add",
     "subtract": "node main.js subtract",
     "test": "jest",
-    "test:mock": "jest --testPathPattern=mock",
-    "test:integration": "jest --testPathPattern='(adapter|manual)'",
-    "test:registration": "jest --testPathPattern=registration"
+    "test:mock": "jest --testPathPatterns=mock",
+    "test:integration": "jest --testPathPatterns='(adapter|manual)'",
+    "test:registration": "jest --testPathPatterns=registration"
   },
   "keywords": [
     "calculator",

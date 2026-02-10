@@ -209,7 +209,7 @@ jobs:
         run: |
           set -o pipefail
           cd consumer-1
-          npm test -- --testPathPattern=mock 2>&1 | tee mock.log
+          npm test -- --testPathPatterns=mock 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat mock.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -249,7 +249,7 @@ jobs:
         run: |
           set -o pipefail
           cd consumer-1
-          npm test -- --testPathPattern="(adapter|manual)" 2>&1 | tee live.log
+          npm test -- --testPathPatterns="(adapter|manual)" 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat live.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
