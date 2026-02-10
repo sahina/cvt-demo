@@ -28,7 +28,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.0-alpha.1
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.1
         ports:
           - 9550:9550
         options: >-
@@ -41,17 +41,13 @@ jobs:
       - name: Checkout cvt-demo
         uses: actions/checkout@v4
 
-      - name: Checkout CVT SDK
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository_owner }}/cvt
-          path: cvt
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.6'
+          go-version: '1.25.x'
           cache: true
           cache-dependency-path: producer/go.sum
 
@@ -59,6 +55,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
           cache: 'npm'
           cache-dependency-path: consumer-1/package-lock.json
 
@@ -70,28 +67,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
 
-      - name: Setup CVT SDK path
-        run: |
-          # Create symlink for local dependencies to resolve CVT SDK
-          ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
-
-      - name: Build CVT Tools
-        run: |
-          # Build CVT CLI
-          mkdir -p $GITHUB_WORKSPACE/bin
-          cd cvt/cmd/cvt
-          go build -o $GITHUB_WORKSPACE/bin/cvt .
-          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-
-          # Build CVT Node SDK
-          cd ../../sdks/node
-          npm ci
-          npm run build
-
       - name: Install Consumer-1 Dependencies
         run: |
           cd consumer-1
           npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Consumer-2 Dependencies
         run: |

@@ -1,68 +1,23 @@
 name: 'Setup CVT'
-description: 'Setup CVT CLI and SDKs for testing'
+description: 'Download CVT CLI from GitHub releases'
 
 inputs:
-  github-token:
-    description: 'GitHub token for CVT repo checkout'
-    required: true
-  go-cache-dependency-path:
-    description: 'Path to go.sum for caching'
-    required: true
-  build-node-sdk:
-    description: 'Whether to build the Node SDK (requires node-cache-dependency-path)'
-    default: 'false'
-  node-cache-dependency-path:
-    description: 'Path to package-lock.json for Node.js caching (required when build-node-sdk is true)'
-    default: ''
+  cvt-version:
+    description: 'CVT version to download'
+    default: '0.1.1'
 
 runs:
   using: 'composite'
   steps:
-    - name: Validate Node.js cache path
-      if: inputs.build-node-sdk == 'true' && inputs.node-cache-dependency-path == ''
-      shell: bash
-      run: |
-        echo "::error::'node-cache-dependency-path' is required when 'build-node-sdk' is true."
-        exit 1
-
-    - name: Checkout CVT SDK
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ github.repository_owner }}/cvt
-        path: cvt
-        token: ${{ inputs.github-token }}
-
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.24.x'
-        cache: true
-        cache-dependency-path: ${{ inputs.go-cache-dependency-path }}
-
-    - name: Setup Node.js
-      if: inputs.build-node-sdk == 'true'
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'npm'
-        cache-dependency-path: ${{ inputs.node-cache-dependency-path }}
-
-    - name: Setup CVT SDK path
-      shell: bash
-      run: ln -s $GITHUB_WORKSPACE/cvt $GITHUB_WORKSPACE/../cvt 2>/dev/null || true
-
-    - name: Build CVT CLI
+    - name: Download CVT CLI
       shell: bash
       run: |
         mkdir -p $GITHUB_WORKSPACE/bin
-        cd cvt/cmd/cvt
-        go build -o $GITHUB_WORKSPACE/bin/cvt .
+        curl -fsSL "https://github.com/sahina/cvt/releases/download/v${{ inputs.cvt-version }}/cvt-linux-amd64" \
+          -o $GITHUB_WORKSPACE/bin/cvt
+        chmod +x $GITHUB_WORKSPACE/bin/cvt
         echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
 
-    - name: Build CVT Node SDK
-      if: inputs.build-node-sdk == 'true'
+    - name: Verify CVT CLI
       shell: bash
-      run: |
-        cd cvt/sdks/node
-        npm ci
-        npm run build
+      run: cvt version || cvt --help

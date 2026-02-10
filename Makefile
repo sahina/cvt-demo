@@ -11,19 +11,6 @@
 	test-producer test-producer-compliance test-producer-middleware \
 	test-producer-registry test-producer-integration
 
-# =============================================================================
-# Path Configuration for Docker Builds
-# =============================================================================
-# CVT repository root (relative to this repo)
-CVT_ROOT ?= ../cvt
-
-# Docker build context directory (parent of this repo)
-BUILD_CONTEXT ?= ..
-
-# Symlink names expected by Dockerfiles
-CVT_SYMLINK_NAME ?= cvt
-REPO_SYMLINK_NAME ?= cvt-demo
-
 # Default values for calculator operations
 x ?= 5
 y ?= 3
@@ -94,33 +81,7 @@ help:
 # Docker Operations
 # =============================================================================
 
-# Check that CVT SDKs are available for Docker builds
-check-cvt-sdk:
-	@if [ ! -d "$(CVT_ROOT)/sdks/go" ] || [ ! -d "$(CVT_ROOT)/sdks/node" ] || [ ! -d "$(CVT_ROOT)/sdks/python" ]; then \
-		echo ""; \
-		echo "ERROR: CVT SDKs not found at $(CVT_ROOT)/sdks/{go,node,python}"; \
-		echo ""; \
-		echo "To build Docker images locally, clone the CVT repository:"; \
-		echo "  git clone https://github.com/sahina/cvt.git $(CVT_ROOT)"; \
-		echo ""; \
-		exit 1; \
-	fi
-
-# Create symlinks in build context for Docker builds
-# Dockerfiles expect: $(CVT_SYMLINK_NAME)/sdks/... and $(REPO_SYMLINK_NAME)/...
-setup-symlink: check-cvt-sdk
-	@# Create CVT symlink in build context pointing to CVT repository
-	@if [ ! -e $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) ]; then \
-		ln -sf $(CVT_ROOT) $(BUILD_CONTEXT)/$(CVT_SYMLINK_NAME) 2>/dev/null || true; \
-	fi
-	@# Create repo symlink in build context pointing to current directory
-	@DIRNAME=$$(basename $$(pwd)); \
-	if [ "$$DIRNAME" != "$(REPO_SYMLINK_NAME)" ] && [ ! -e $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) ]; then \
-		ln -sf "$$DIRNAME" $(BUILD_CONTEXT)/$(REPO_SYMLINK_NAME) 2>/dev/null || true; \
-	fi
-
-# Local Docker build (requires CVT repository and symlinks)
-build: setup-symlink
+build:
 	docker compose build
 
 up: build

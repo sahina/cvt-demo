@@ -1,11 +1,9 @@
 # Docker Compose for local development
-# Requires CVT repository (github.com/sahina/cvt) for Docker builds
-# Run: make setup-symlink (uses CVT_ROOT variable, default: ../../cvt)
 
 services:
   # CVT Server - Contract validation service (pre-built image)
   cvt-server:
-    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.0-alpha.2}
+    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.1}
     container_name: cvt-server
     ports:
       - "9550:9550" # gRPC port
@@ -28,8 +26,8 @@ services:
   # Producer - Go Calculator API (build from local source)
   producer:
     build:
-      context: ..
-      dockerfile: cvt-demo/producer/Dockerfile
+      context: .
+      dockerfile: producer/Dockerfile
     container_name: producer
     ports:
       - "10001:10001"
@@ -48,8 +46,10 @@ services:
   # Consumer-1 - Node.js CLI (run as one-off container)
   consumer-1:
     build:
-      context: ..
-      dockerfile: cvt-demo/consumer-1/Dockerfile
+      context: .
+      dockerfile: consumer-1/Dockerfile
+      secrets:
+        - github_token
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
@@ -64,8 +64,8 @@ services:
   # Consumer-2 - Python CLI (run as one-off container)
   consumer-2:
     build:
-      context: ..
-      dockerfile: cvt-demo/consumer-2/Dockerfile
+      context: .
+      dockerfile: consumer-2/Dockerfile
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
@@ -76,6 +76,10 @@ services:
       - cvt-demo-network
     profiles:
       - cli
+
+secrets:
+  github_token:
+    environment: "GITHUB_TOKEN"
 
 networks:
   cvt-demo-network:

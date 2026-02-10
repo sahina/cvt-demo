@@ -82,6 +82,5 @@ __pycache__/
 .venv/
 venv/
 .uv/
-consumer-2/uv.lock
 .playwright-mcp/
 

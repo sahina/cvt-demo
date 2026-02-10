@@ -12,8 +12,8 @@
  * - can-i-deploy: Check if a schema change is safe for all consumers
  */
 
-const { ContractValidator } = require('@cvt/sdk');
-const { createMockAdapter } = require('@cvt/sdk/adapters');
+const { ContractValidator } = require('@sahina/cvt-sdk');
+const { createMockAdapter } = require('@sahina/cvt-sdk/adapters');
 const path = require('path');
 
 const CVT_SERVER_ADDR = process.env.CVT_SERVER_ADDR || 'localhost:9550';
