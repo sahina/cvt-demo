@@ -118,12 +118,12 @@ All endpoints accept query params `x` and `y` (numbers) and return `{"result": <
 
 ## SDK Dependencies
 
-All CVT SDKs are consumed from published packages (v0.1.1):
+All CVT SDKs are consumed from published packages (v0.1.2):
 
 - **Go SDK**: `github.com/sahina/cvt/sdks/go` via Go module proxy
 - **Node SDK**: `@sahina/cvt-sdk` via GitHub npm registry (`npm.pkg.github.com`)
 - **Python SDK**: `cvt-sdk` wheel from GitHub Releases
-- **CVT Server**: `ghcr.io/sahina/cvt-server:0.1.1` container image
+- **CVT Server**: `ghcr.io/sahina/cvt-server:0.1.2` container image
 - **CVT CLI**: Pre-built binary from GitHub Releases
 
 ## Environment Variables
