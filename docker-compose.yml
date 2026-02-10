@@ -48,8 +48,8 @@ services:
     build:
       context: .
       dockerfile: consumer-1/Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      secrets:
+        - github_token
     environment:
       - PRODUCER_URL=http://producer:10001
       - CVT_SERVER_ADDR=cvt-server:9550
@@ -76,6 +76,10 @@ services:
       - cvt-demo-network
     profiles:
       - cli
+
+secrets:
+  github_token:
+    environment: "GITHUB_TOKEN"
 
 networks:
   cvt-demo-network:

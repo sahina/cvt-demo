@@ -20,4 +20,4 @@ runs:
 
     - name: Verify CVT CLI
       shell: bash
-      run: cvt version || cvt --help || true
+      run: cvt version || cvt --help

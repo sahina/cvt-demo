@@ -5,9 +5,9 @@ WORKDIR /app
 # Copy package files and .npmrc for GitHub packages registry
 COPY consumer-1/.npmrc consumer-1/package.json consumer-1/package-lock.json ./
 
-# Install dependencies (auth token injected at build time for GitHub packages)
-ARG GITHUB_TOKEN
-RUN echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc && \
+# Install dependencies (auth token injected via BuildKit secret)
+RUN --mount=type=secret,id=github_token \
+    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/github_token)" >> .npmrc && \
     npm ci && \
     sed -i '/authToken/d' .npmrc
 

@@ -6,9 +6,9 @@ WORKDIR /app
 # Install uv for dependency management
 RUN pip install --no-cache-dir uv==0.9.26
 
-# Copy project config and install dependencies
-COPY consumer-2/pyproject.toml ./
-RUN uv sync --extra cvt
+# Copy project config and lock file, then install dependencies
+COPY consumer-2/pyproject.toml consumer-2/uv.lock ./
+RUN uv sync --frozen --extra cvt
 
 # Copy consumer source
 COPY consumer-2/main.py ./
