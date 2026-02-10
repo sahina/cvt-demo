@@ -70,7 +70,7 @@ jobs:
           cd consumer-1
           npm install
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Consumer-2 Dependencies
         run: |
