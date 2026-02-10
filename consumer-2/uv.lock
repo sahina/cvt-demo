@@ -111,7 +111,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cvt-sdk", marker = "extra == 'cvt'", url = "https://github.com/sahina/cvt/releases/download/v0.1.1/cvt_sdk-0.1.1-py3-none-any.whl" },
+    { name = "cvt-sdk", marker = "extra == 'cvt'", url = "https://github.com/sahina/cvt/releases/download/v0.1.2/cvt_sdk-0.1.2-py3-none-any.whl" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "requests", specifier = ">=2.31.0" },
 ]
@@ -119,15 +119,15 @@ provides-extras = ["cvt", "dev"]
 
 [[package]]
 name = "cvt-sdk"
-version = "0.1.1"
-source = { url = "https://github.com/sahina/cvt/releases/download/v0.1.1/cvt_sdk-0.1.1-py3-none-any.whl" }
+version = "0.1.2"
+source = { url = "https://github.com/sahina/cvt/releases/download/v0.1.2/cvt_sdk-0.1.2-py3-none-any.whl" }
 dependencies = [
     { name = "grpcio" },
     { name = "protobuf" },
     { name = "pytest" },
 ]
 wheels = [
-    { url = "https://github.com/sahina/cvt/releases/download/v0.1.1/cvt_sdk-0.1.1-py3-none-any.whl", hash = "sha256:0620c8313ac100e87bfe387ee4f3888067d5bb178a16b024aca04ed2ee5d7475" },
+    { url = "https://github.com/sahina/cvt/releases/download/v0.1.2/cvt_sdk-0.1.2-py3-none-any.whl", hash = "sha256:4133b99546d459d70bbdaf73a4714fda5b0eb21f6756d35d924bb93c2d1b5a20" },
 ]
 
 [package.metadata]

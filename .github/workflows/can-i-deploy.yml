@@ -28,7 +28,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.1
+        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.2
         ports:
           - 9550:9550
         options: >-
