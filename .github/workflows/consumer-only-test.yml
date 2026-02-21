@@ -11,7 +11,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.3
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
         ports:
           - 9550:9550
         options: >-
@@ -31,14 +31,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          registry-url: "https://npm.pkg.github.com"
 
       - name: Install Dependencies
         run: |
           cd consumer-1
           npm install
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
@@ -76,7 +73,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.2
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
         ports:
           - 9550:9550
         options: >-

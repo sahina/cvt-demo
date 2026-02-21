@@ -10,8 +10,8 @@
  *   --validate  Enable CVT contract validation (default: off)
  */
 
-import { program } from 'commander';
-import { create } from 'axios';
+const { program } = require('commander');
+const { create } = require('axios');
 
 // Configuration
 const PRODUCER_URL = process.env.PRODUCER_URL || 'http://localhost:10001';

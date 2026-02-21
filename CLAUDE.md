@@ -23,7 +23,6 @@ make logs            # View logs
 make build           # Build all Docker images
 ```
 
-**Note**: Building consumer-1 Docker image requires `GITHUB_TOKEN` env var with `packages:read` scope for GitHub npm packages.
 
 ### Testing
 
@@ -118,13 +117,12 @@ All endpoints accept query params `x` and `y` (numbers) and return `{"result": <
 
 ## SDK Dependencies
 
-All CVT SDKs are consumed from published packages (v0.1.2):
+All CVT SDKs are consumed from published packages (v0.3.0):
 
 - **Go SDK**: `github.com/sahina/cvt/sdks/go` via Go module proxy
-- **Node SDK**: `@sahina/cvt-sdk` via GitHub npm registry (`npm.pkg.github.com`)
-- **Python SDK**: `cvt-sdk` wheel from GitHub Releases
-- **CVT Server**: `ghcr.io/sahina/cvt-server:0.1.2` container image
-- **CVT CLI**: Pre-built binary from GitHub Releases
+- **Node SDK**: `@sahina/cvt-sdk` via npm public registry (`npmjs.org`)
+- **Python SDK**: `cvt-sdk` via PyPI
+- **CVT Server/CLI**: `ghcr.io/sahina/cvt:0.3.0` container image (unified binary)
 
 ## Environment Variables
 
@@ -134,7 +132,6 @@ All CVT SDKs are consumed from published packages (v0.1.2):
 | `CVT_SERVER_ADDR` | `localhost:9550`         | CVT gRPC server                       |
 | `CVT_ENABLED`     | `true`                   | Enable/disable CVT on producer        |
 | `CVT_ENVIRONMENT` | `demo`                   | Environment for consumer registration |
-| `GITHUB_TOKEN`    | -                        | Required for consumer-1 npm install and Docker build (needs `packages:read` scope) |
 
 ## Tool Versions
 

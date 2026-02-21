@@ -2,14 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files and .npmrc for GitHub packages registry
-COPY consumer-1/.npmrc consumer-1/package.json consumer-1/package-lock.json ./
+# Copy package files
+COPY consumer-1/package.json consumer-1/package-lock.json ./
 
-# Install dependencies (auth token injected via BuildKit secret)
-RUN --mount=type=secret,id=github_token \
-    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/github_token)" >> .npmrc && \
-    npm ci && \
-    sed -i '/authToken/d' .npmrc
+# Install dependencies
+RUN npm ci
 
 # Copy consumer source
 COPY consumer-1/main.js ./

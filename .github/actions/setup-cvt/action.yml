@@ -4,7 +4,7 @@ description: 'Download CVT CLI from GitHub releases'
 inputs:
   cvt-version:
     description: 'CVT version to download'
-    default: '0.1.2'
+    default: '0.3.0'
 
 runs:
   using: 'composite'
@@ -13,8 +13,8 @@ runs:
       shell: bash
       run: |
         mkdir -p $GITHUB_WORKSPACE/bin
-        curl -fsSL "https://github.com/sahina/cvt/releases/download/v${{ inputs.cvt-version }}/cvt-linux-amd64" \
-          -o $GITHUB_WORKSPACE/bin/cvt
+        curl -fsSL "https://github.com/sahina/cvt/releases/download/v${{ inputs.cvt-version }}/cvt_${{ inputs.cvt-version }}_linux_amd64.tar.gz" \
+          | tar xz -C $GITHUB_WORKSPACE/bin cvt
         chmod +x $GITHUB_WORKSPACE/bin/cvt
         echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
 
