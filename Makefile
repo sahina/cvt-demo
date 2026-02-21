@@ -259,15 +259,15 @@ shell-cvt:
 # Consumer-1 (Node.js) Tests
 test-consumer-1-mock:
 	@echo "Running Consumer-1 mock tests (no producer needed)..."
-	cd consumer-1 && npm test -- --testPathPattern=mock
+	cd consumer-1 && npm test -- --testPathPatterns=mock
 
 test-consumer-1-live:
 	@echo "Running Consumer-1 live tests (requires producer)..."
-	cd consumer-1 && npm test -- --testPathPattern="(adapter|manual)"
+	cd consumer-1 && npm test -- --testPathPatterns="(adapter|manual)"
 
 test-consumer-1-registration:
 	@echo "Running Consumer-1 registration tests..."
-	cd consumer-1 && npm test -- --testPathPattern=registration
+	cd consumer-1 && npm test -- --testPathPatterns=registration
 
 test-consumer-1:
 	@echo "Running all Consumer-1 tests..."
@@ -330,7 +330,7 @@ demo-breaking-change:
 	@echo ""
 	@echo "Step 1: Register consumers to 'demo' environment..."
 	@echo "Running consumer-1 registration tests..."
-	-cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPattern=registration 2>/dev/null || true
+	-cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPatterns=registration 2>/dev/null || true
 	@echo ""
 	@echo "Running consumer-2 registration tests..."
 	-cd consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>/dev/null || true

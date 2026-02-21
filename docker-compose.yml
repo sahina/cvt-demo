@@ -3,8 +3,8 @@
 services:
   # CVT Server - Contract validation service (pre-built image)
   cvt-server:
-    image: ghcr.io/sahina/cvt-server:${CVT_SERVER_VERSION:-0.1.2}
-    container_name: cvt-server
+    image: ghcr.io/sahina/cvt:${CVT_SERVER_VERSION:-0.3.0}
+    container_name: cvt
     ports:
       - "9550:9550" # gRPC port
       - "9551:9551" # Metrics port
@@ -33,7 +33,7 @@ services:
       - "10001:10001"
     environment:
       - PORT=10001
-      - CVT_SERVER_ADDR=cvt-server:9550
+      - CVT_SERVER_ADDR=cvt:9550
       - SCHEMA_PATH=/app/calculator-api.yaml
       - CVT_ENABLED=true
     depends_on:
@@ -48,11 +48,9 @@ services:
     build:
       context: .
       dockerfile: consumer-1/Dockerfile
-      secrets:
-        - github_token
     environment:
       - PRODUCER_URL=http://producer:10001
-      - CVT_SERVER_ADDR=cvt-server:9550
+      - CVT_SERVER_ADDR=cvt:9550
       - SCHEMA_PATH=/app/calculator-api.json
     depends_on:
       - producer
@@ -76,10 +74,6 @@ services:
       - cvt-demo-network
     profiles:
       - cli
-
-secrets:
-  github_token:
-    environment: "GITHUB_TOKEN"
 
 networks:
   cvt-demo-network:

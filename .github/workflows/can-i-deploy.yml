@@ -28,7 +28,7 @@ jobs:
 
     services:
       cvt-server:
-        image: ghcr.io/${{ github.repository_owner }}/cvt-server:0.1.2
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
         ports:
           - 9550:9550
         options: >-
@@ -55,7 +55,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://npm.pkg.github.com'
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -69,8 +68,6 @@ jobs:
         run: |
           cd consumer-1
           npm install
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Consumer-2 Dependencies
         run: |
