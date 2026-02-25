@@ -49,7 +49,15 @@ jobs:
         with:
           go-version: '1.25.x'
           cache: true
-          cache-dependency-path: producer/go.sum
+          cache-dependency-path: |
+            producer/go.sum
+            consumer-4/go.sum
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -81,6 +89,8 @@ jobs:
         run: |
           cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPatterns=registration --silent 2>&1
           cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1
+          cd ../consumer-3 && CVT_ENVIRONMENT=demo CVT_SERVER_ADDR=localhost:9550 SCHEMA_PATH=../producer/calculator-api.json mvn test -Dtest="RegistrationTest" -q 2>&1
+          cd ../consumer-4 && CVT_ENVIRONMENT=demo CVT_SERVER_ADDR=localhost:9550 SCHEMA_PATH=../producer/calculator-api.json go test ./tests/... -run TestRegistration -v 2>&1
 
       - name: Register Schema
         run: |
@@ -125,6 +135,8 @@ jobs:
           1. **Consumers register** their API usage patterns with CVT
              - consumer-1 (Node.js) uses \`result\` field in \`/add\` and \`/subtract\`
              - consumer-2 (Python) uses \`result\` field in \`/add\`, \`/multiply\`, and \`/divide\`
+             - consumer-3 (Java) uses \`result\` field in \`/multiply\` and \`/divide\`
+             - consumer-4 (Go) uses \`result\` field in \`/add\` and \`/subtract\`
           2. **Producer proposes v2.0.0** which renames \`result\` → \`value\` in responses
           3. **CVT checks** if the change is safe to deploy
           4. **Result**: CVT detected the breaking change and blocked deployment
