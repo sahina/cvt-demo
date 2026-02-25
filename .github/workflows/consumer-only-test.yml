@@ -130,3 +130,125 @@ jobs:
 
           </details>
           EOF
+
+  consumer-3-tests:
+    name: Consumer-3 Mock Tests (Java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Wait for CVT Server
+        run: cvt wait --server localhost:9550 --timeout 60
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          set -o pipefail
+          cd consumer-3
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          mvn test -Dtest="MockValidationTest" 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-3 Mock Tests (Java)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+          EOF
+
+  consumer-4-tests:
+    name: Consumer-4 Mock Tests (Go)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: consumer-4/go.sum
+
+      - name: Wait for CVT Server
+        run: cvt wait --server localhost:9550 --timeout 60
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          set -o pipefail
+          cd consumer-4
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          go test ./tests/... -run TestMock -v 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-4 Mock Tests (Go)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+          EOF

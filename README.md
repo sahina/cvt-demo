@@ -10,19 +10,29 @@ This demo application showcases the **[Contract Validator Toolkit (CVT)](https:/
                     │   (port 9550)   │
                     └────────┬────────┘
                              │ gRPC
-         ┌───────────────────┼───────────────────┐
-         │                   │                   │
-         ▼                   ▼                   ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│   Consumer-1    │ │    Producer     │ │   Consumer-2    │
-│   (Node.js)     │ │   (Go + CVT)    │ │   (Python/uv)   │
-│   CLI Tool      │ │  port 10001     │ │   CLI Tool      │
-│  add, subtract  │ │  4 endpoints    │ │ add,mult,divide │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
-         │                   ▲                   │
-         └───────────────────┴───────────────────┘
-                      HTTP calls
+    ┌────────────────────────┼────────────────────────┐
+    │           │            │            │           │
+    ▼           ▼            ▼            ▼           ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│Consumer-1│ │Consumer-2│ │ Producer │ │Consumer-3│ │Consumer-4│
+│(Node.js) │ │(Python)  │ │(Go+CVT)  │ │ (Java)   │ │  (Go)    │
+│ CLI Tool │ │ CLI Tool │ │port 10001│ │ CLI Tool │ │ CLI Tool │
+│add,subtr │ │add,mult  │ │4 endpoint│ │mult,div  │ │add,subtr │
+│          │ │divide    │ │          │ │          │ │          │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+    │             │             ▲             │           │
+    └─────────────┴─────────────┴─────────────┴───────────┘
+                           HTTP calls
 ```
+
+## Operation Assignment
+
+| Consumer | Language | Operations | Build Tool |
+|---|---|---|---|
+| consumer-1 | Node.js 22 | add, subtract | npm/Jest |
+| consumer-2 | Python 3.12 | add, multiply, divide | uv/pytest |
+| consumer-3 | Java 21 | multiply, divide | Maven/JUnit 5 |
+| consumer-4 | Go 1.25 | add, subtract | go test |
 
 ## Components
 
@@ -61,6 +71,24 @@ A CLI tool that calls the Calculator API for **add**, **multiply**, and **divide
 uv run python main.py add 5 3
 uv run python main.py multiply 4 7
 uv run python main.py divide 10 2
+```
+
+### Consumer-3 (Java)
+
+A CLI tool that calls the Calculator API for **multiply** and **divide** operations:
+
+```bash
+java -jar consumer3.jar multiply 4 7
+java -jar consumer3.jar divide 10 2
+```
+
+### Consumer-4 (Go)
+
+A CLI tool that calls the Calculator API for **add** and **subtract** operations:
+
+```bash
+./consumer4 add 5 3
+./consumer4 subtract 10 4
 ```
 
 ## Prerequisites
@@ -148,7 +176,37 @@ make consumer-2-multiply-validate x=12 y=12
 make consumer-2-divide-validate
 ```
 
-### 6. Run All Tests
+### 6. Run Consumer-3 (Java)
+
+```bash
+# Without CVT validation (default: A=5, B=3)
+make consumer-3-multiply
+make consumer-3-divide
+
+# With custom values
+make consumer-3-multiply x=4 y=7
+
+# With CVT validation
+make consumer-3-multiply-validate
+make consumer-3-divide-validate x=10 y=2
+```
+
+### 7. Run Consumer-4 (Go)
+
+```bash
+# Without CVT validation (default: A=5, B=3)
+make consumer-4-add
+make consumer-4-subtract
+
+# With custom values
+make consumer-4-add x=10 y=20
+
+# With CVT validation
+make consumer-4-add-validate
+make consumer-4-subtract-validate x=100 y=50
+```
+
+### 8. Run All Tests
 
 ```bash
 # Run all consumer operations
@@ -158,7 +216,7 @@ make test-all
 make test-contracts
 ```
 
-### 7. Stop Everything
+### 9. Stop Everything
 
 ```bash
 make down
@@ -214,6 +272,7 @@ This demo includes comprehensive contract tests demonstrating all three CVT vali
 # Install test dependencies
 cd consumer-1 && npm install
 cd consumer-2 && uv sync --extra dev --extra cvt
+# consumer-3 uses Maven (mvn test), consumer-4 uses go test
 
 # Run mock tests (no producer needed, only CVT server)
 make test-unit
@@ -224,6 +283,8 @@ make test-integration
 # Run all tests for a specific consumer
 make test-consumer-1
 make test-consumer-2
+make test-consumer-3   # Maven/JUnit 5
+make test-consumer-4   # go test
 ```
 
 ### Test Files
@@ -248,6 +309,22 @@ For detailed documentation on each consumer's tests, see:
 - `test_mock.py` - Mock Client for unit testing (no producer needed)
 - `test_registration.py` - Consumer registration (auto + manual)
 - **Endpoints tested:** `/add`, `/multiply`, `/divide`
+
+#### Consumer-3 Tests (Java)
+
+- `ManualValidationTest.java` - Manual validation with explicit `validator.validate()` calls
+- `AdapterValidationTest.java` - HTTP Adapter with OkHttp interceptor
+- `MockValidationTest.java` - Mock Client for unit testing (no producer needed)
+- `RegistrationTest.java` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/multiply`, `/divide`
+
+#### Consumer-4 Tests (Go)
+
+- `manual_test.go` - Manual validation with explicit `validator.Validate()` calls
+- `adapter_test.go` - HTTP Adapter with ValidatingRoundTripper
+- `mock_test.go` - Mock Client for unit testing (no producer needed)
+- `registration_test.go` - Consumer registration (auto + manual)
+- **Endpoints tested:** `/add`, `/subtract`
 
 ## Producer Contract Tests
 
@@ -338,10 +415,10 @@ This demo includes GitHub Actions workflows for running CVT contract tests. Both
 
 ### Tests Workflow
 
-Runs contract tests in sequence: producer tests first, then consumer-1 and consumer-2 tests in parallel.
+Runs contract tests in sequence: producer tests first, then all consumer tests in parallel.
 
 ```text
-producer-tests → (consumer-1-tests || consumer-2-tests)
+producer-tests → (consumer-1-tests || consumer-2-tests || consumer-3-tests || consumer-4-tests)
 ```
 
 Each job uses the CVT server as a GitHub Actions service container and generates expandable job summaries with test results.
@@ -403,6 +480,10 @@ make help  # Show all available targets
 - `make consumer-2-add` - Run add operation (Python)
 - `make consumer-2-multiply` - Run multiply operation (Python)
 - `make consumer-2-divide` - Run divide operation (Python)
+- `make consumer-3-multiply` - Run multiply operation (Java)
+- `make consumer-3-divide` - Run divide operation (Java)
+- `make consumer-4-add` - Run add operation (Go)
+- `make consumer-4-subtract` - Run subtract operation (Go)
 
 Add `-validate` suffix for CVT validation (e.g., `make consumer-1-add-validate`).
 
@@ -429,6 +510,14 @@ make consumer-2-divide x=100 y=4     # 100 / 4 = 25
 - `make test-consumer-2-mock` - Run Consumer-2 mock tests (no producer needed)
 - `make test-consumer-2-integration` - Run Consumer-2 integration tests
 - `make test-consumer-2-registration` - Run Consumer-2 registration tests
+- `make test-consumer-3` - Run all Consumer-3 tests (Java)
+- `make test-consumer-3-mock` - Run Consumer-3 mock tests
+- `make test-consumer-3-live` - Run Consumer-3 live tests
+- `make test-consumer-3-registration` - Run Consumer-3 registration tests
+- `make test-consumer-4` - Run all Consumer-4 tests (Go)
+- `make test-consumer-4-mock` - Run Consumer-4 mock tests
+- `make test-consumer-4-live` - Run Consumer-4 live tests
+- `make test-consumer-4-registration` - Run Consumer-4 registration tests
 - `make test-unit` - Run all mock/unit tests
 - `make test-integration` - Run all integration tests
 - `make demo-breaking-change` - Demo CVT breaking change detection
@@ -482,17 +571,38 @@ cvt-demo/
 │       ├── adapter.test.js # HTTP Adapter tests
 │       ├── mock.test.js   # Mock Client tests
 │       └── registration.test.js # Consumer registration tests
-└── consumer-2/
-    ├── main.py            # Python CLI
-    ├── pyproject.toml
+├── consumer-2/
+│   ├── main.py            # Python CLI
+│   ├── pyproject.toml
+│   ├── Dockerfile
+│   └── tests/
+│       ├── README.md      # Test documentation
+│       ├── conftest.py    # pytest fixtures
+│       ├── test_manual.py # Manual validation tests
+│       ├── test_adapter.py # HTTP Adapter tests
+│       ├── test_mock.py   # Mock Client tests
+│       └── test_registration.py # Consumer registration tests
+├── consumer-3/
+│   ├── pom.xml              # Maven build (Java 21)
+│   ├── Dockerfile
+│   └── src/
+│       ├── main/java/demo/consumer3/
+│       │   └── Main.java    # Java CLI (multiply, divide)
+│       └── test/java/demo/consumer3/
+│           ├── ManualValidationTest.java
+│           ├── AdapterValidationTest.java
+│           ├── MockValidationTest.java
+│           └── RegistrationTest.java
+└── consumer-4/
+    ├── go.mod               # Go module
+    ├── main.go              # Go CLI (add, subtract)
     ├── Dockerfile
     └── tests/
-        ├── README.md      # Test documentation
-        ├── conftest.py    # pytest fixtures
-        ├── test_manual.py # Manual validation tests
-        ├── test_adapter.py # HTTP Adapter tests
-        ├── test_mock.py   # Mock Client tests
-        └── test_registration.py # Consumer registration tests
+        ├── testutil_test.go # Shared test utilities
+        ├── manual_test.go
+        ├── adapter_test.go
+        ├── mock_test.go
+        └── registration_test.go
 ```
 
 ## Development
@@ -533,6 +643,30 @@ uv run python main.py add 5 3
 # Run tests
 uv run pytest tests/ -v              # All tests
 uv run pytest tests/test_mock.py -v  # Mock tests only
+```
+
+**Consumer-3 (Java):**
+
+```bash
+cd consumer-3
+mvn package -DskipTests
+java -jar target/consumer3.jar multiply 4 7
+
+# Run tests (requires CVT server at localhost:9550)
+mvn test -Dtest="MockValidationTest"    # Mock tests only
+mvn test                                # All tests
+```
+
+**Consumer-4 (Go):**
+
+```bash
+cd consumer-4
+go build -o consumer4 .
+./consumer4 add 5 3
+
+# Run tests (requires CVT server at localhost:9550)
+go test ./tests/... -run TestMock -v    # Mock tests only
+go test ./tests/... -v                  # All tests
 ```
 
 ### Environment Variables
