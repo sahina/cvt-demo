@@ -4,9 +4,15 @@
 	consumer-1-add-validate consumer-1-subtract-validate \
 	consumer-2-add consumer-2-multiply consumer-2-divide \
 	consumer-2-add-validate consumer-2-multiply-validate consumer-2-divide-validate \
+	consumer-3-multiply consumer-3-divide \
+	consumer-3-multiply-validate consumer-3-divide-validate \
+	consumer-4-add consumer-4-subtract \
+	consumer-4-add-validate consumer-4-subtract-validate \
 	shell-producer shell-cvt test-producer-http \
 	test-consumer-1 test-consumer-1-mock test-consumer-1-live test-consumer-1-registration \
 	test-consumer-2 test-consumer-2-mock test-consumer-2-live test-consumer-2-registration \
+	test-consumer-3 test-consumer-3-mock test-consumer-3-live test-consumer-3-registration \
+	test-consumer-4 test-consumer-4-mock test-consumer-4-live test-consumer-4-registration \
 	test-unit test-live demo-breaking-change \
 	test-producer test-producer-compliance test-producer-middleware \
 	test-producer-registry test-producer-integration
@@ -50,6 +56,18 @@ help:
 	@echo "  make consumer-2-multiply-validate - With CVT validation"
 	@echo "  make consumer-2-divide-validate - With CVT validation"
 	@echo ""
+	@echo "Consumer-3 Operations (Java - multiply, divide):"
+	@echo "  make consumer-3-multiply         - Run: multiply (default: 5 * 3)"
+	@echo "  make consumer-3-divide           - Run: divide (default: 5 / 3)"
+	@echo "  make consumer-3-multiply-validate - With CVT validation"
+	@echo "  make consumer-3-divide-validate  - With CVT validation"
+	@echo ""
+	@echo "Consumer-4 Operations (Go - add, subtract):"
+	@echo "  make consumer-4-add              - Run: add (default: 5 + 3)"
+	@echo "  make consumer-4-subtract         - Run: subtract (default: 5 - 3)"
+	@echo "  make consumer-4-add-validate     - With CVT validation"
+	@echo "  make consumer-4-subtract-validate - With CVT validation"
+	@echo ""
 	@echo "Custom values: make <target> x=<num> y=<num>"
 	@echo "  Example: make consumer-1-add x=10 y=20"
 	@echo ""
@@ -66,6 +84,14 @@ help:
 	@echo "  make test-consumer-2-mock      - Run Consumer-2 mock tests (no producer needed)"
 	@echo "  make test-consumer-2-live      - Run Consumer-2 live tests (requires producer)"
 	@echo "  make test-consumer-2-registration - Run Consumer-2 registration tests"
+	@echo "  make test-consumer-3           - Run all Consumer-3 tests"
+	@echo "  make test-consumer-3-mock      - Run Consumer-3 mock tests (no producer needed)"
+	@echo "  make test-consumer-3-live      - Run Consumer-3 live tests (requires producer)"
+	@echo "  make test-consumer-3-registration - Run Consumer-3 registration tests"
+	@echo "  make test-consumer-4           - Run all Consumer-4 tests"
+	@echo "  make test-consumer-4-mock      - Run Consumer-4 mock tests (no producer needed)"
+	@echo "  make test-consumer-4-live      - Run Consumer-4 live tests (requires producer)"
+	@echo "  make test-consumer-4-registration - Run Consumer-4 registration tests"
 	@echo "  make test-unit          - Run all mock tests (no producer needed)"
 	@echo "  make test-live          - Run all live tests (requires producer)"
 	@echo "  make test               - Run all tests (mock + live)"
@@ -211,6 +237,50 @@ consumer-2-divide-validate:
 	docker compose run --rm consumer-2 divide $(x) $(y) --validate
 
 # =============================================================================
+# Consumer-3 Operations (without validation)
+# Usage: make consumer-3-multiply x=4 y=7
+# =============================================================================
+
+consumer-3-multiply:
+	docker compose run --rm consumer-3 multiply $(x) $(y)
+
+consumer-3-divide:
+	docker compose run --rm consumer-3 divide $(x) $(y)
+
+# =============================================================================
+# Consumer-3 Operations (with CVT validation)
+# Usage: make consumer-3-multiply-validate x=4 y=7
+# =============================================================================
+
+consumer-3-multiply-validate:
+	docker compose run --rm consumer-3 multiply $(x) $(y) --validate
+
+consumer-3-divide-validate:
+	docker compose run --rm consumer-3 divide $(x) $(y) --validate
+
+# =============================================================================
+# Consumer-4 Operations (without validation)
+# Usage: make consumer-4-add x=4 y=7
+# =============================================================================
+
+consumer-4-add:
+	docker compose run --rm consumer-4 add $(x) $(y)
+
+consumer-4-subtract:
+	docker compose run --rm consumer-4 subtract $(x) $(y)
+
+# =============================================================================
+# Consumer-4 Operations (with CVT validation)
+# Usage: make consumer-4-add-validate x=4 y=7
+# =============================================================================
+
+consumer-4-add-validate:
+	docker compose run --rm consumer-4 add $(x) $(y) --validate
+
+consumer-4-subtract-validate:
+	docker compose run --rm consumer-4 subtract $(x) $(y) --validate
+
+# =============================================================================
 # Testing
 # =============================================================================
 
@@ -290,11 +360,47 @@ test-consumer-2:
 	@echo "Running all Consumer-2 tests..."
 	cd consumer-2 && uv run pytest tests/ -v
 
+# Consumer-3 (Java) Tests
+test-consumer-3-mock:
+	@echo "Running Consumer-3 mock tests (no producer needed)..."
+	cd consumer-3 && mvn test -Dtest="MockValidationTest" -q
+
+test-consumer-3-live:
+	@echo "Running Consumer-3 live tests (requires producer)..."
+	cd consumer-3 && mvn test -Dtest="ManualValidationTest,AdapterValidationTest" -q
+
+test-consumer-3-registration:
+	@echo "Running Consumer-3 registration tests..."
+	cd consumer-3 && mvn test -Dtest="RegistrationTest" -q
+
+test-consumer-3:
+	@echo "Running all Consumer-3 tests..."
+	cd consumer-3 && mvn test
+
+# Consumer-4 (Go) Tests
+test-consumer-4-mock:
+	@echo "Running Consumer-4 mock tests (no producer needed)..."
+	cd consumer-4 && go test ./tests/... -run TestMock -v
+
+test-consumer-4-live:
+	@echo "Running Consumer-4 live tests (requires producer)..."
+	cd consumer-4 && go test ./tests/... -run "TestManual|TestAdapter" -v
+
+test-consumer-4-registration:
+	@echo "Running Consumer-4 registration tests..."
+	cd consumer-4 && go test ./tests/... -run TestRegistration -v
+
+test-consumer-4:
+	@echo "Running all Consumer-4 tests..."
+	cd consumer-4 && go test ./tests/... -v
+
 # Combined Test Targets
 test-unit:
 	@echo "Running all mock/unit tests (no services needed except CVT server)..."
 	@$(MAKE) -s test-consumer-1-mock
 	@$(MAKE) -s test-consumer-2-mock
+	@$(MAKE) -s test-consumer-3-mock
+	@$(MAKE) -s test-consumer-4-mock
 	@echo ""
 	@echo "All mock tests completed!"
 
@@ -302,6 +408,8 @@ test-live:
 	@echo "Running all live tests (requires producer)..."
 	@$(MAKE) -s test-consumer-1-live
 	@$(MAKE) -s test-consumer-2-live
+	@$(MAKE) -s test-consumer-3-live
+	@$(MAKE) -s test-consumer-4-live
 	@echo ""
 	@echo "All live tests completed!"
 
