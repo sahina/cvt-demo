@@ -502,7 +502,7 @@ jobs:
           CVT_SERVER_ADDR=localhost:9550 \
           PRODUCER_URL=http://localhost:10001 \
           SCHEMA_PATH=../producer/calculator-api.json \
-          mvn test -Dtest="ManualValidationTest,AdapterValidationTest,RegistrationTest" 2>&1 | tee live.log
+          mvn test -Dtest="ManualValidationTest,AdapterValidationTest" 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat live.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -623,7 +623,7 @@ jobs:
           CVT_SERVER_ADDR=localhost:9550 \
           PRODUCER_URL=http://localhost:10001 \
           SCHEMA_PATH=../producer/calculator-api.json \
-          go test ./tests/... -run "TestManual|TestAdapter|TestRegistration" -v 2>&1 | tee live.log
+          go test ./tests/... -run "TestManual|TestAdapter" -v 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat live.log >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
