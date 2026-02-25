@@ -411,3 +411,251 @@ jobs:
 
           </details>
           EOF
+
+  consumer-3-tests:
+    name: Consumer-3 Tests (Java)
+    runs-on: ubuntu-latest
+    needs: producer-tests
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: producer/go.sum
+
+      - name: Wait for CVT Server
+        run: cvt wait --server localhost:9550 --timeout 60
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          set -o pipefail
+          cd consumer-3
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          mvn test -Dtest="MockValidationTest" 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
+      - name: Start Producer
+        run: |
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
+
+      - name: Wait for Producer
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:10001/health; then
+              echo ""
+              echo "Producer is ready"
+              exit 0
+            fi
+            echo "Waiting for producer... ($i/30)"
+            sleep 2
+          done
+          echo "Producer failed to start"
+          exit 1
+
+      - name: Run Live Tests
+        id: live
+        run: |
+          set -o pipefail
+          cd consumer-3
+          CVT_SERVER_ADDR=localhost:9550 \
+          PRODUCER_URL=http://localhost:10001 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          mvn test -Dtest="ManualValidationTest,AdapterValidationTest,RegistrationTest" 2>&1 | tee live.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat live.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Stop Producer
+        if: always()
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-3 Tests (Java)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>🔌 Live Tests (Manual + Adapter + Registration)</summary>
+
+          ```
+          ${{ steps.live.outputs.output }}
+          ```
+
+          </details>
+          EOF
+
+  consumer-4-tests:
+    name: Consumer-4 Tests (Go)
+    runs-on: ubuntu-latest
+    needs: producer-tests
+    timeout-minutes: 30
+
+    services:
+      cvt-server:
+        image: ghcr.io/${{ github.repository_owner }}/cvt:0.3.0
+        ports:
+          - 9550:9550
+        options: >-
+          --health-cmd "/bin/grpc_health_probe -addr=:9550"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout cvt-demo
+        uses: actions/checkout@v4
+
+      - name: Setup CVT
+        uses: ./.github/actions/setup-cvt
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: consumer-4/go.sum
+
+      - name: Wait for CVT Server
+        run: cvt wait --server localhost:9550 --timeout 60
+
+      - name: Run Mock Tests
+        id: mock
+        run: |
+          set -o pipefail
+          cd consumer-4
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          go test ./tests/... -run TestMock -v 2>&1 | tee mock.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat mock.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build Producer
+        run: |
+          cd producer
+          go build -o calculator-api .
+
+      - name: Start Producer
+        run: |
+          cd producer
+          PORT=10001 \
+          CVT_SERVER_ADDR=localhost:9550 \
+          SCHEMA_PATH=./calculator-api.yaml \
+          CVT_ENABLED=true \
+          ./calculator-api &
+          echo $! > /tmp/producer.pid
+          echo "Producer started with PID $(cat /tmp/producer.pid)"
+
+      - name: Wait for Producer
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:10001/health; then
+              echo ""
+              echo "Producer is ready"
+              exit 0
+            fi
+            echo "Waiting for producer... ($i/30)"
+            sleep 2
+          done
+          echo "Producer failed to start"
+          exit 1
+
+      - name: Run Live Tests
+        id: live
+        run: |
+          set -o pipefail
+          cd consumer-4
+          CVT_SERVER_ADDR=localhost:9550 \
+          PRODUCER_URL=http://localhost:10001 \
+          SCHEMA_PATH=../producer/calculator-api.json \
+          go test ./tests/... -run "TestManual|TestAdapter|TestRegistration" -v 2>&1 | tee live.log
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat live.log >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Stop Producer
+        if: always()
+        run: |
+          if [ -f /tmp/producer.pid ]; then
+            kill $(cat /tmp/producer.pid) 2>/dev/null || true
+          fi
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Consumer-4 Tests (Go)
+
+          <details>
+          <summary>🧪 Mock Tests (CVT Server Only)</summary>
+
+          ```
+          ${{ steps.mock.outputs.output }}
+          ```
+
+          </details>
+
+          <details>
+          <summary>🔌 Live Tests (Manual + Adapter + Registration)</summary>
+
+          ```
+          ${{ steps.live.outputs.output }}
+          ```
+
+          </details>
+          EOF
