@@ -75,6 +75,38 @@ services:
     profiles:
       - cli
 
+  # Consumer-3 - Java CLI (run as one-off container)
+  consumer-3:
+    build:
+      context: .
+      dockerfile: consumer-3/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
+  # Consumer-4 - Go CLI (run as one-off container)
+  consumer-4:
+    build:
+      context: .
+      dockerfile: consumer-4/Dockerfile
+    environment:
+      - PRODUCER_URL=http://producer:10001
+      - CVT_SERVER_ADDR=cvt:9550
+      - SCHEMA_PATH=/app/calculator-api.json
+    depends_on:
+      - producer
+    networks:
+      - cvt-demo-network
+    profiles:
+      - cli
+
 networks:
   cvt-demo-network:
     driver: bridge
