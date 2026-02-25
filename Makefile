@@ -296,6 +296,14 @@ test-all:
 	@$(MAKE) -s consumer-2-multiply
 	@$(MAKE) -s consumer-2-divide
 	@echo ""
+	@echo "=== Consumer-3 (Java) ==="
+	@$(MAKE) -s consumer-3-multiply
+	@$(MAKE) -s consumer-3-divide
+	@echo ""
+	@echo "=== Consumer-4 (Go) ==="
+	@$(MAKE) -s consumer-4-add
+	@$(MAKE) -s consumer-4-subtract
+	@echo ""
 	@echo "All operations completed!"
 
 test-contracts:
@@ -309,6 +317,14 @@ test-contracts:
 	@$(MAKE) -s consumer-2-add-validate
 	@$(MAKE) -s consumer-2-multiply-validate
 	@$(MAKE) -s consumer-2-divide-validate
+	@echo ""
+	@echo "=== Consumer-3 (Java) with validation ==="
+	@$(MAKE) -s consumer-3-multiply-validate
+	@$(MAKE) -s consumer-3-divide-validate
+	@echo ""
+	@echo "=== Consumer-4 (Go) with validation ==="
+	@$(MAKE) -s consumer-4-add-validate
+	@$(MAKE) -s consumer-4-subtract-validate
 	@echo ""
 	@echo "All contract validations passed!"
 
