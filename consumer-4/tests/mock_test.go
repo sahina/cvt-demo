@@ -29,7 +29,10 @@ func TestMock_AddResponse(t *testing.T) {
 		t.Errorf("Expected 200, got %d", resp.StatusCode)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
 	var data map[string]interface{}
 	if err := json.Unmarshal(body, &data); err != nil {
 		t.Fatalf("Failed to parse response: %v", err)
@@ -56,6 +59,18 @@ func TestMock_SubtractResponse(t *testing.T) {
 
 	if resp.StatusCode != 200 {
 		t.Errorf("Expected 200, got %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
+	var data map[string]interface{}
+	if err := json.Unmarshal(body, &data); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+	if _, ok := data["result"]; !ok {
+		t.Errorf("Expected 'result' field in response, got: %v", data)
 	}
 }
 
@@ -111,9 +126,14 @@ func TestMock_ResponseValidatesAgainstSchema(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
 	var bodyData map[string]interface{}
-	json.Unmarshal(body, &bodyData)
+	if err := json.Unmarshal(body, &bodyData); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
 
 	ctx := context.Background()
 	result, err := validator.Validate(ctx,
