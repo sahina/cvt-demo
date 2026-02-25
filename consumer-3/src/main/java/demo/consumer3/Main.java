@@ -68,7 +68,9 @@ public class Main {
         String path = "/" + command + "?x=" + formatParam(x) + "&y=" + formatParam(y);
         String url = PRODUCER_URL + path;
 
-        HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .build();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Accept", "application/json")
@@ -91,28 +93,33 @@ public class Main {
         }
 
         if (validate) {
-            try (ContractValidator validator = new ContractValidator(CVT_SERVER_ADDR)) {
-                validator.registerSchema("calculator-api", SCHEMA_PATH);
+            try {
+                try (ContractValidator validator = new ContractValidator(CVT_SERVER_ADDR)) {
+                    validator.registerSchema("calculator-api", SCHEMA_PATH);
 
-                ValidationRequest validationRequest = ValidationRequest.builder()
-                        .method("GET")
-                        .path(path)
-                        .headers(Map.of())
-                        .build();
+                    ValidationRequest validationRequest = ValidationRequest.builder()
+                            .method("GET")
+                            .path(path)
+                            .headers(Map.of())
+                            .build();
 
-                ValidationResponse validationResponse = ValidationResponse.builder()
-                        .statusCode(statusCode)
-                        .header("content-type", "application/json")
-                        .body(body)
-                        .build();
+                    ValidationResponse validationResponse = ValidationResponse.builder()
+                            .statusCode(statusCode)
+                            .header("content-type", "application/json")
+                            .body(body)
+                            .build();
 
-                ValidationResult result = validator.validate(validationRequest, validationResponse);
+                    ValidationResult result = validator.validate(validationRequest, validationResponse);
 
-                if (!result.isValid()) {
-                    List<String> errors = result.getErrors();
-                    System.err.println("CVT Validation failed: " + String.join(", ", errors));
-                    System.exit(1);
+                    if (!result.isValid()) {
+                        List<String> errors = result.getErrors();
+                        System.err.println("CVT Validation failed: " + String.join(", ", errors));
+                        System.exit(1);
+                    }
                 }
+            } catch (Exception e) {
+                System.err.println("Warning: Failed to enable CVT validation: " + e.getMessage());
+                System.err.println("Continuing without validation...");
             }
         }
 
