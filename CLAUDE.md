@@ -10,7 +10,7 @@ This is a Contract Validator Toolkit (CVT) demonstration application showcasing 
 
 - **CVT Server**: gRPC-based contract validation service (port 9550)
 - **Producer**: Go-based Calculator API with CVT middleware (port 10001)
-- **Consumers**: Node.js (consumer-1) and Python (consumer-2) CLI tools
+- **Consumers**: Node.js (consumer-1), Python (consumer-2), Java (consumer-3), and Go (consumer-4) CLI tools
 
 ## Common Commands
 
@@ -34,6 +34,8 @@ make test-integration # Integration tests (requires services running)
 # Consumer-specific tests
 make test-consumer-1      # All Consumer-1 tests
 make test-consumer-2      # All Consumer-2 tests
+make test-consumer-3      # All Consumer-3 tests (Java)
+make test-consumer-4      # All Consumer-4 tests (Go)
 make test-consumer-1-mock # Mock tests only
 
 # Producer contract tests
@@ -54,6 +56,14 @@ make consumer-1-add-validate x=5 y=3  # With CVT validation
 # Consumer-2 (Python) - add, multiply, divide
 make consumer-2-multiply x=5 y=3
 make consumer-2-divide-validate x=10 y=2
+
+# Consumer-3 (Java) - multiply, divide
+make consumer-3-multiply x=5 y=3
+make consumer-3-multiply-validate x=5 y=3  # With CVT validation
+
+# Consumer-4 (Go) - add, subtract
+make consumer-4-add x=5 y=3
+make consumer-4-subtract-validate x=10 y=2
 ```
 
 ### Direct Test Execution
@@ -107,6 +117,12 @@ make demo-breaking-change
 | `consumer-1/main.js`              | Node.js CLI with optional CVT validation          |
 | `consumer-2/main.py`              | Python CLI with optional CVT validation           |
 | `consumer-*/tests/`               | Consumer test suites for each validation approach |
+| `consumer-3/src/main/java/demo/consumer3/Main.java` | Java CLI for multiply/divide |
+| `consumer-3/src/test/java/demo/consumer3/` | Consumer-3 test suites          |
+| `consumer-3/pom.xml`              | Maven build configuration                         |
+| `consumer-4/main.go`              | Go CLI for add/subtract                           |
+| `consumer-4/tests/`               | Consumer-4 test suites                            |
+| `consumer-4/go.mod`               | Go module configuration                           |
 
 ### API Endpoints
 
@@ -122,6 +138,7 @@ All CVT SDKs are consumed from published packages (v0.3.0):
 - **Go SDK**: `github.com/sahina/cvt/sdks/go` via Go module proxy
 - **Node SDK**: `@sahina/cvt-sdk` via npm public registry (`npmjs.org`)
 - **Python SDK**: `cvt-sdk` via PyPI
+- **Java SDK**: `io.github.sahina:cvt-sdk:0.3.0` (Maven Central)
 - **CVT Server/CLI**: `ghcr.io/sahina/cvt:0.3.0` container image (unified binary)
 
 ## Environment Variables
@@ -140,3 +157,4 @@ Managed via `.tool-versions` (asdf):
 - Go 1.24.6
 - Python 3.12.4
 - Node 22.14.0
+- Java 21 (via `eclipse-temurin:21` in Docker)
