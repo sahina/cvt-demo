@@ -6,7 +6,8 @@ FROM eclipse-temurin:21 AS builder
 WORKDIR /build
 
 # Install Maven (not included in eclipse-temurin:21)
-RUN apt-get update -qq && apt-get install -y -qq maven 2>/dev/null
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends maven \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy pom.xml and download deps first (Docker layer cache)
 COPY consumer-3/pom.xml .
@@ -27,5 +28,8 @@ COPY producer/calculator-api.json ./calculator-api.json
 ENV PRODUCER_URL=http://producer:10001
 ENV CVT_SERVER_ADDR=cvt:9550
 ENV SCHEMA_PATH=/app/calculator-api.json
+
+RUN groupadd -r appgroup && useradd -r -g appgroup -d /app appuser && chown -R appuser:appgroup /app
+USER appuser
 
 ENTRYPOINT ["java", "-jar", "consumer3.jar"]

@@ -90,8 +90,17 @@ func TestAdapter_CapturesMultipleInteractions(t *testing.T) {
 	})
 	client := &http.Client{Transport: rt}
 
-	client.Get(fmt.Sprintf("%s/add?x=3&y=4", config.ProducerURL))
-	client.Get(fmt.Sprintf("%s/subtract?x=8&y=2", config.ProducerURL))
+	resp1, err := client.Get(fmt.Sprintf("%s/add?x=3&y=4", config.ProducerURL))
+	if err != nil {
+		t.Fatalf("First request failed: %v", err)
+	}
+	resp1.Body.Close()
+
+	resp2, err := client.Get(fmt.Sprintf("%s/subtract?x=8&y=2", config.ProducerURL))
+	if err != nil {
+		t.Fatalf("Second request failed: %v", err)
+	}
+	resp2.Body.Close()
 
 	interactions := rt.GetInteractions()
 	if len(interactions) != 2 {
@@ -111,8 +120,17 @@ func TestAdapter_AllInteractionsValid(t *testing.T) {
 	})
 	client := &http.Client{Transport: rt}
 
-	client.Get(fmt.Sprintf("%s/add?x=5&y=5", config.ProducerURL))
-	client.Get(fmt.Sprintf("%s/subtract?x=9&y=3", config.ProducerURL))
+	resp1, err := client.Get(fmt.Sprintf("%s/add?x=5&y=5", config.ProducerURL))
+	if err != nil {
+		t.Fatalf("First request failed: %v", err)
+	}
+	resp1.Body.Close()
+
+	resp2, err := client.Get(fmt.Sprintf("%s/subtract?x=9&y=3", config.ProducerURL))
+	if err != nil {
+		t.Fatalf("Second request failed: %v", err)
+	}
+	resp2.Body.Close()
 
 	interactions := rt.GetInteractions()
 	for i, interaction := range interactions {

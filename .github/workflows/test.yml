@@ -441,6 +441,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -530,7 +531,7 @@ jobs:
           </details>
 
           <details>
-          <summary>🔌 Live Tests (Manual + Adapter + Registration)</summary>
+          <summary>🔌 Live Tests (Manual + Adapter)</summary>
 
           ```
           ${{ steps.live.outputs.output }}
@@ -651,7 +652,7 @@ jobs:
           </details>
 
           <details>
-          <summary>🔌 Live Tests (Manual + Adapter + Registration)</summary>
+          <summary>🔌 Live Tests (Manual + Adapter)</summary>
 
           ```
           ${{ steps.live.outputs.output }}

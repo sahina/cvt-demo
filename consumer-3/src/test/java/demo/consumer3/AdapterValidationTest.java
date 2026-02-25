@@ -56,6 +56,8 @@ public class AdapterValidationTest {
 
         httpClient = new OkHttpClient.Builder()
                 .addInterceptor(adapter)
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .readTimeout(java.time.Duration.ofSeconds(10))
                 .build();
     }
 
@@ -108,7 +110,7 @@ public class AdapterValidationTest {
             body = response.body().string();
         }
 
-        assertTrue(body.contains("5") || body.contains("result"),
+        assertTrue(body.contains("\"result\":5") || body.contains("\"result\":5.0") || body.contains("\"result\": 5"),
                 "Response body should contain result=5, got: " + body);
 
         List<CapturedInteraction> interactions = adapter.getInteractions();

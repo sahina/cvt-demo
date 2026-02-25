@@ -126,7 +126,9 @@ func doValidation(path string, statusCode int, body []byte) error {
 	}
 
 	var bodyData map[string]interface{}
-	json.Unmarshal(body, &bodyData) //nolint:errcheck
+	if err := json.Unmarshal(body, &bodyData); err != nil {
+		return fmt.Errorf("failed to parse response body: %w", err)
+	}
 
 	result, err := validator.Validate(ctx,
 		cvt.ValidationRequest{Method: "GET", Path: path},

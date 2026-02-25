@@ -84,7 +84,11 @@ func TestMock_CapturesInteractions(t *testing.T) {
 	mock.ClearInteractions()
 	client := mock.Client()
 
-	client.Get("http://calculator-api/add")
+	resp, err := client.Get("http://calculator-api/add")
+	if err != nil {
+		t.Fatalf("Mock fetch failed: %v", err)
+	}
+	resp.Body.Close()
 
 	interactions := mock.GetInteractions()
 	if len(interactions) != 1 {
@@ -102,8 +106,17 @@ func TestMock_CapturesAllConsumer4Endpoints(t *testing.T) {
 	mock.ClearInteractions()
 	client := mock.Client()
 
-	client.Get("http://calculator-api/add")
-	client.Get("http://calculator-api/subtract")
+	resp1, err := client.Get("http://calculator-api/add")
+	if err != nil {
+		t.Fatalf("Mock fetch for /add failed: %v", err)
+	}
+	resp1.Body.Close()
+
+	resp2, err := client.Get("http://calculator-api/subtract")
+	if err != nil {
+		t.Fatalf("Mock fetch for /subtract failed: %v", err)
+	}
+	resp2.Body.Close()
 
 	interactions := mock.GetInteractions()
 	if len(interactions) != 2 {

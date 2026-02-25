@@ -47,7 +47,10 @@ public class ManualValidationTest {
     static void setUp() throws Exception {
         validator = new ContractValidator(CVT_SERVER_ADDR);
         validator.registerSchema(SCHEMA_ID, SCHEMA_PATH);
-        httpClient = new OkHttpClient.Builder().build();
+        httpClient = new OkHttpClient.Builder()
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .readTimeout(java.time.Duration.ofSeconds(10))
+                .build();
     }
 
     @AfterAll
@@ -84,7 +87,7 @@ public class ManualValidationTest {
 
             assertTrue(result.isValid(),
                     "Response should be valid against schema. Errors: " + result.getErrors());
-            assertTrue(body.contains("28") || body.contains("result"),
+            assertTrue(body.contains("\"result\":28") || body.contains("\"result\":28.0") || body.contains("\"result\": 28"),
                     "Response body should contain result=28, got: " + body);
         }
     }
@@ -116,7 +119,7 @@ public class ManualValidationTest {
 
             assertTrue(result.isValid(),
                     "Response should be valid against schema. Errors: " + result.getErrors());
-            assertTrue(body.contains("5") || body.contains("result"),
+            assertTrue(body.contains("\"result\":5") || body.contains("\"result\":5.0") || body.contains("\"result\": 5"),
                     "Response body should contain result=5, got: " + body);
         }
     }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/sahina/cvt/sdks/go/cvt"
 )
@@ -19,7 +20,8 @@ func TestManual_AddValidation(t *testing.T) {
 	ctx := context.Background()
 
 	url := fmt.Sprintf("%s/add?x=4&y=7", config.ProducerURL)
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		t.Fatalf("HTTP request failed: %v", err)
 	}
@@ -67,11 +69,16 @@ func TestManual_SubtractValidation(t *testing.T) {
 	ctx := context.Background()
 
 	url := fmt.Sprintf("%s/subtract?x=10&y=3", config.ProducerURL)
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		t.Fatalf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Expected 200, got %d", resp.StatusCode)
+	}
 
 	var body map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
@@ -126,11 +133,16 @@ func TestManual_SubtractByNegativeValidation(t *testing.T) {
 	ctx := context.Background()
 
 	url := fmt.Sprintf("%s/subtract?x=5&y=10", config.ProducerURL)
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		t.Fatalf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("Expected 200, got %d", resp.StatusCode)
+	}
 
 	var body map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {

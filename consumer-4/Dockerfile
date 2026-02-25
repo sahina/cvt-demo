@@ -33,4 +33,7 @@ ENV PRODUCER_URL=http://producer:10001
 ENV CVT_SERVER_ADDR=cvt:9550
 ENV SCHEMA_PATH=/app/calculator-api.json
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && chown -R appuser:appgroup /app
+USER appuser
+
 ENTRYPOINT ["./consumer4"]

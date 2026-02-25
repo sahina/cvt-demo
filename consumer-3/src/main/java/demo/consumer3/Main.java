@@ -64,7 +64,7 @@ public class Main {
         }
     }
 
-    private static void run(String command, double x, double y, boolean validate) throws Exception {
+    private static void run(String command, double x, double y, boolean validate) throws java.io.IOException, InterruptedException {
         String path = "/" + command + "?x=" + formatParam(x) + "&y=" + formatParam(y);
         String url = PRODUCER_URL + path;
 

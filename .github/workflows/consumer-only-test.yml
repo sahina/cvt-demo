@@ -159,6 +159,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Wait for CVT Server
         run: cvt wait --server localhost:9550 --timeout 60
