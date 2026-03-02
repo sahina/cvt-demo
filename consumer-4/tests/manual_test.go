@@ -87,7 +87,7 @@ func TestManual_SubtractValidation(t *testing.T) {
 
 	result, err := validator.Validate(ctx,
 		cvt.ValidationRequest{Method: "GET", Path: "/subtract?x=10&y=3"},
-		cvt.ValidationResponse{StatusCode: resp.StatusCode, Body: body},
+		cvt.ValidationResponse{StatusCode: resp.StatusCode, Headers: headersToMap(resp.Header), Body: body},
 	)
 	if err != nil {
 		t.Fatalf("Validation error: %v", err)
@@ -151,7 +151,7 @@ func TestManual_SubtractByNegativeValidation(t *testing.T) {
 
 	result, err := validator.Validate(ctx,
 		cvt.ValidationRequest{Method: "GET", Path: "/subtract?x=5&y=10"},
-		cvt.ValidationResponse{StatusCode: resp.StatusCode, Body: body},
+		cvt.ValidationResponse{StatusCode: resp.StatusCode, Headers: headersToMap(resp.Header), Body: body},
 	)
 	if err != nil {
 		t.Fatalf("Validation error: %v", err)
