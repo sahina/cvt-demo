@@ -91,7 +91,7 @@ jobs:
           cd consumer-1 && CVT_ENVIRONMENT=demo npm test -- --testPathPatterns=registration --silent 2>&1
           cd ../consumer-2 && CVT_ENVIRONMENT=demo uv run pytest tests/test_registration.py -v 2>&1
           cd ../consumer-3 && CVT_ENVIRONMENT=demo CVT_SERVER_ADDR=localhost:9550 SCHEMA_PATH=../producer/calculator-api.json mvn test -Dtest="RegistrationTest" -q 2>&1
-          cd ../consumer-4 && CVT_ENVIRONMENT=demo CVT_SERVER_ADDR=localhost:9550 SCHEMA_PATH=../producer/calculator-api.json go test ./tests/... -run TestRegistration -v 2>&1
+          cd ../consumer-4 && CVT_ENVIRONMENT=demo CVT_SERVER_ADDR=localhost:9550 go test ./tests/... -run TestRegistration -v 2>&1
 
       - name: Register Schema
         run: |

@@ -580,7 +580,6 @@ jobs:
           set -o pipefail
           cd consumer-4
           CVT_SERVER_ADDR=localhost:9550 \
-          SCHEMA_PATH=../producer/calculator-api.json \
           go test ./tests/... -run TestMock -v 2>&1 | tee mock.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat mock.log >> $GITHUB_OUTPUT
@@ -623,7 +622,6 @@ jobs:
           cd consumer-4
           CVT_SERVER_ADDR=localhost:9550 \
           PRODUCER_URL=http://localhost:10001 \
-          SCHEMA_PATH=../producer/calculator-api.json \
           go test ./tests/... -run "TestManual|TestAdapter" -v 2>&1 | tee live.log
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat live.log >> $GITHUB_OUTPUT

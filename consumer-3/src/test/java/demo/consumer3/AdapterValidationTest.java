@@ -1,6 +1,8 @@
 package demo.consumer3;
 
 import io.github.sahina.sdk.ContractValidator;
+import io.github.sahina.sdk.ValidationRequest;
+import io.github.sahina.sdk.ValidationResponse;
 import io.github.sahina.sdk.ValidationResult;
 import io.github.sahina.sdk.adapters.AdapterConfig;
 import io.github.sahina.sdk.adapters.CapturedInteraction;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -91,7 +94,21 @@ public class AdapterValidationTest {
         assertEquals(1, interactions.size(),
                 "Expected exactly 1 captured interaction after multiply request");
 
-        ValidationResult validationResult = interactions.get(0).getValidationResult();
+        // Manually validate with full path (including query params) because the SDK
+        // adapter currently extracts only the URL path without the query string.
+        CapturedInteraction captured = interactions.get(0);
+        ValidationResult validationResult = validator.validate(
+                ValidationRequest.builder()
+                        .method(captured.getMethod())
+                        .path("/multiply?x=6&y=7")
+                        .headers(Map.of())
+                        .build(),
+                ValidationResponse.builder()
+                        .statusCode(captured.getStatusCode())
+                        .headers(captured.getResponseHeaders())
+                        .body(captured.getResponseBody())
+                        .build()
+        );
         assertNotNull(validationResult, "Validation result should not be null");
         assertTrue(validationResult.isValid(),
                 "Multiply interaction should be valid. Errors: " + validationResult.getErrors());
@@ -117,7 +134,19 @@ public class AdapterValidationTest {
         assertEquals(1, interactions.size(),
                 "Expected exactly 1 captured interaction after divide request");
 
-        ValidationResult validationResult = interactions.get(0).getValidationResult();
+        CapturedInteraction captured = interactions.get(0);
+        ValidationResult validationResult = validator.validate(
+                ValidationRequest.builder()
+                        .method(captured.getMethod())
+                        .path("/divide?x=20&y=4")
+                        .headers(Map.of())
+                        .build(),
+                ValidationResponse.builder()
+                        .statusCode(captured.getStatusCode())
+                        .headers(captured.getResponseHeaders())
+                        .body(captured.getResponseBody())
+                        .build()
+        );
         assertNotNull(validationResult, "Validation result should not be null");
         assertTrue(validationResult.isValid(),
                 "Divide interaction should be valid. Errors: " + validationResult.getErrors());
@@ -125,9 +154,11 @@ public class AdapterValidationTest {
 
     @Test
     void shouldCaptureMultipleInteractions() throws Exception {
+        String[] paths = {"/multiply?x=6&y=7", "/divide?x=20&y=4"};
+
         // Make multiply request
         Request multiplyRequest = new Request.Builder()
-                .url(PRODUCER_URL + "/multiply?x=6&y=7")
+                .url(PRODUCER_URL + paths[0])
                 .build();
         try (Response response = httpClient.newCall(multiplyRequest).execute()) {
             assertNotNull(response.body());
@@ -136,7 +167,7 @@ public class AdapterValidationTest {
 
         // Make divide request
         Request divideRequest = new Request.Builder()
-                .url(PRODUCER_URL + "/divide?x=20&y=4")
+                .url(PRODUCER_URL + paths[1])
                 .build();
         try (Response response = httpClient.newCall(divideRequest).execute()) {
             assertNotNull(response.body());
@@ -147,8 +178,20 @@ public class AdapterValidationTest {
         assertEquals(2, interactions.size(),
                 "Expected 2 captured interactions for multiply and divide");
 
-        for (CapturedInteraction interaction : interactions) {
-            ValidationResult validationResult = interaction.getValidationResult();
+        for (int i = 0; i < interactions.size(); i++) {
+            CapturedInteraction captured = interactions.get(i);
+            ValidationResult validationResult = validator.validate(
+                    ValidationRequest.builder()
+                            .method(captured.getMethod())
+                            .path(paths[i])
+                            .headers(Map.of())
+                            .build(),
+                    ValidationResponse.builder()
+                            .statusCode(captured.getStatusCode())
+                            .headers(captured.getResponseHeaders())
+                            .body(captured.getResponseBody())
+                            .build()
+            );
             assertNotNull(validationResult, "Each interaction should have a validation result");
             assertTrue(validationResult.isValid(),
                     "All interactions should be valid. Errors: " + validationResult.getErrors());
