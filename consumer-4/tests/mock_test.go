@@ -150,7 +150,7 @@ func TestMock_ResponseValidatesAgainstSchema(t *testing.T) {
 
 	ctx := context.Background()
 	result, err := validator.Validate(ctx,
-		cvt.ValidationRequest{Method: "GET", Path: "/add"},
+		cvt.ValidationRequest{Method: "GET", Path: "/add?x=1&y=2"},
 		cvt.ValidationResponse{StatusCode: 200, Body: bodyData},
 	)
 	if err != nil {
