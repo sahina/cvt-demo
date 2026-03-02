@@ -1,6 +1,9 @@
 # Binaries
 bin/
 build/
+
+# Maven build output
+consumer-3/target/
 producer/producer
 
 # Generated protobuf code (Go)
